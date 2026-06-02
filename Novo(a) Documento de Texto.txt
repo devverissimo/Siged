@@ -1,0 +1,32 @@
+# SIGED — Sistema de Gerenciamento de Estoque para Distribuidoras
+## Produto CoDrive
+
+---
+
+## Contexto do Projeto
+
+Sistema desktop de gerenciamento de estoque desenvolvido como mini-projeto
+acadêmico na PUC Goiás (disciplina CMP1611). O sistema deve ter cara de ERP
+corporativo real — robusto, funcional, sem frescura de design moderno.
+
+---
+
+## Stack Obrigatória — SEM EXCEÇÕES
+
+- Linguagem Java SE (puro, sem frameworks)
+- Interface gráfica Java Swing — OBRIGATÓRIO. NÃO usar JavaFX, HTML,
+  web, Electron ou qualquer outra coisa. TUDO é Swing JFrame, JPanel,
+  JTable, JTextField, JComboBox, JMenuBar, JTabbedPane, JButton.
+- Banco de dados MySQL
+- Conexão JDBC puro — NÃO usar Hibernate, JPA ou qualquer ORM
+- Arquitetura camadas separadas em pacotes (model  dao  service  view)
+- IDE alvo Eclipse (o professor vai importar e executar no Eclipse)
+
+---
+
+## Identidade Visual — Swing
+
+O sistema deve parecer um ERP dos anos 2000 atualizado pesado, sério,
+funcional. Sem bordas arredondadas excessivas, sem animações, sem gradientes.
+
+### Paleta de cores (usar via UIManager ou Color)
