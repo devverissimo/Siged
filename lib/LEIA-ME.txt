@@ -1,0 +1,14 @@
+
+MySQL Connector/J 8.x — Instrucoes de Instalacao
+=================================================
+
+1. Baixar o conector em: https://dev.mysql.com/downloads/connector/j/
+   Selecionar: Platform Independent > ZIP Archive
+
+2. Extrair e copiar o arquivo JAR para esta pasta (lib/)
+   Nome esperado: mysql-connector-j-8.0.33.jar
+
+3. No Eclipse: botao direito no projeto > Build Path > Configure Build Path
+   > Libraries > Add JARs > selecionar lib/mysql-connector-j-8.0.33.jar
+
+O .classpath ja esta configurado apontando para este arquivo.
