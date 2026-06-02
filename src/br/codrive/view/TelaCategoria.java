@@ -18,7 +18,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
-public class TelaCategoria extends JInternalFrame {
+public class TelaCategoria extends JInternalFrame implements ModuloAcoes {
 
     // Aba CADASTRO
     private JTextField campoId;
@@ -57,7 +57,6 @@ public class TelaCategoria extends JInternalFrame {
         abas.add(Mensagem.get("tab.cadastro"), construirAbaCadastro());
         abas.add(Mensagem.get("tab.pesquisa"), construirAbaPesquisa());
 
-        // Ao abrir a aba PESQUISA, recarrega a tabela com os dados atuais
         abas.addChangeListener(e -> {
             if (abas.getSelectedIndex() == 1) carregarTabela(campoBusca.getText());
         });
@@ -71,7 +70,6 @@ public class TelaCategoria extends JInternalFrame {
         painel.setBackground(AppTheme.COR_FUNDO);
         painel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // --- Formulário (card branco) ---
         JPanel card = AppTheme.criarPainelCard();
         card.setLayout(new GridBagLayout());
         card.setBorder(BorderFactory.createCompoundBorder(
@@ -83,7 +81,6 @@ public class TelaCategoria extends JInternalFrame {
         g.insets = new Insets(6, 6, 6, 6);
         g.anchor = GridBagConstraints.WEST;
 
-        // Linha 0 — CÓD.
         JLabel lblId = label(Mensagem.get("lbl.codigo") + ":");
         g.gridx = 0; g.gridy = 0; g.fill = GridBagConstraints.NONE; g.weightx = 0;
         card.add(lblId, g);
@@ -94,7 +91,6 @@ public class TelaCategoria extends JInternalFrame {
         g.gridx = 1; g.fill = GridBagConstraints.NONE;
         card.add(campoId, g);
 
-        // Linha 1 — NOME
         JLabel lblNome = label(Mensagem.get("lbl.nome") + ":");
         g.gridx = 0; g.gridy = 1; g.fill = GridBagConstraints.NONE; g.weightx = 0;
         card.add(lblNome, g);
@@ -103,12 +99,10 @@ public class TelaCategoria extends JInternalFrame {
         g.gridx = 1; g.fill = GridBagConstraints.HORIZONTAL; g.weightx = 1.0;
         card.add(campoNome, g);
 
-        // Enter no campo nome dispara SALVAR quando habilitado
         campoNome.addActionListener(e -> { if (btnSalvar.isEnabled()) acaoSalvar(); });
 
         painel.add(card, BorderLayout.CENTER);
 
-        // --- Botões ---
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         painelBotoes.setBackground(AppTheme.COR_FUNDO);
 
@@ -141,7 +135,6 @@ public class TelaCategoria extends JInternalFrame {
         painel.setBackground(AppTheme.COR_FUNDO);
         painel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // --- Barra de busca ---
         JPanel painelBusca = new JPanel(new BorderLayout(6, 0));
         painelBusca.setBackground(AppTheme.COR_FUNDO);
 
@@ -157,7 +150,6 @@ public class TelaCategoria extends JInternalFrame {
         painelBusca.add(campoBusca,   BorderLayout.CENTER);
         painelBusca.add(btnPesquisar, BorderLayout.EAST);
 
-        // --- Tabela ---
         modeloTabela = new DefaultTableModel(
             new String[]{
                 Mensagem.get("tabela.codigo"),
@@ -175,7 +167,6 @@ public class TelaCategoria extends JInternalFrame {
         tabela.getColumnModel().getColumn(0).setMaxWidth(80);
         tabela.getColumnModel().getColumn(0).setPreferredWidth(60);
 
-        // Clique na linha → preenche formulário e abre aba CADASTRO
         tabela.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && tabela.getSelectedRow() >= 0) {
                 selecionarDaTabela();
@@ -217,10 +208,11 @@ public class TelaCategoria extends JInternalFrame {
     }
 
     // -------------------------------------------------------------------------
-    // Ações dos botões
+    // Implementação de ModuloAcoes — delegação da toolbar de TelaMenu
     // -------------------------------------------------------------------------
 
-    private void acaoNovo() {
+    @Override
+    public void acaoNovo() {
         campoId.setText("");
         campoNome.setText("");
         categoriaAtual = null;
@@ -232,7 +224,8 @@ public class TelaCategoria extends JInternalFrame {
         btnExcluir.setEnabled(false);
     }
 
-    private void acaoSalvar() {
+    @Override
+    public void acaoSalvar() {
         try {
             Categoria c = categoriaAtual != null ? categoriaAtual : new Categoria();
             c.setNome(campoNome.getText());
@@ -254,7 +247,8 @@ public class TelaCategoria extends JInternalFrame {
         }
     }
 
-    private void acaoEditar() {
+    @Override
+    public void acaoEditar() {
         if (categoriaAtual == null) return;
         campoNome.setEnabled(true);
         campoNome.requestFocus();
@@ -264,7 +258,8 @@ public class TelaCategoria extends JInternalFrame {
         btnExcluir.setEnabled(false);
     }
 
-    private void acaoExcluir() {
+    @Override
+    public void acaoExcluir() {
         if (categoriaAtual == null) return;
         if (!Mensagem.confirmar(this, Mensagem.get("confirm.excluir"))) return;
         try {
@@ -277,6 +272,16 @@ public class TelaCategoria extends JInternalFrame {
             Mensagem.erro(this, "Erro ao excluir categoria:\n" + ex.getMessage());
         }
     }
+
+    @Override
+    public void acaoPesquisar() {
+        abas.setSelectedIndex(1);
+        campoBusca.requestFocus();
+    }
+
+    // -------------------------------------------------------------------------
+    // Ações internas
+    // -------------------------------------------------------------------------
 
     private void selecionarDaTabela() {
         int row = tabela.getSelectedRow();
@@ -304,10 +309,6 @@ public class TelaCategoria extends JInternalFrame {
             Mensagem.erro(this, "Erro ao pesquisar categorias:\n" + ex.getMessage());
         }
     }
-
-    // -------------------------------------------------------------------------
-    // Helper
-    // -------------------------------------------------------------------------
 
     private JLabel label(String texto) {
         JLabel l = new JLabel(texto);

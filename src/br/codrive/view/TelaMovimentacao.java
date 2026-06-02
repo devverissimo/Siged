@@ -24,7 +24,7 @@ import java.awt.event.ItemEvent;
 import java.time.LocalDate;
 import java.util.List;
 
-public class TelaMovimentacao extends JInternalFrame {
+public class TelaMovimentacao extends JInternalFrame implements ModuloAcoes {
 
     // Formulário
     private JComboBox<Produto> comboProduto;
@@ -40,7 +40,6 @@ public class TelaMovimentacao extends JInternalFrame {
     private final MovimentacaoService movService     = new MovimentacaoService();
     private final ProdutoService      produtoService = new ProdutoService();
 
-    // Produto placeholder — id=0, nunca enviado ao banco
     private static final Produto SELECIONE = new Produto(0, "-- Selecione um produto --", 0, 0, 0);
 
     public TelaMovimentacao() {
@@ -71,7 +70,6 @@ public class TelaMovimentacao extends JInternalFrame {
         JPanel painel = new JPanel(new BorderLayout(0, 6));
         painel.setBackground(AppTheme.COR_FUNDO);
 
-        // --- Card do formulário ---
         JPanel card = AppTheme.criarPainelCard();
         card.setLayout(new GridBagLayout());
         card.setBorder(BorderFactory.createCompoundBorder(
@@ -83,7 +81,7 @@ public class TelaMovimentacao extends JInternalFrame {
         g.insets = new Insets(6, 6, 6, 6);
         g.anchor = GridBagConstraints.WEST;
 
-        // --- Linha 0: PRODUTO ---
+        // Linha 0 — PRODUTO
         comboProduto = new JComboBox<>();
         comboProduto.setFont(AppTheme.FONTE_DADOS);
         comboProduto.setRenderer(rendererProduto());
@@ -92,14 +90,14 @@ public class TelaMovimentacao extends JInternalFrame {
         });
 
         g.gridx = 0; g.gridy = 0; g.fill = GridBagConstraints.NONE; g.weightx = 0;
-        card.add(lbl("lbl.produto.label", "PRODUTO:"), g);
+        card.add(lbl("PRODUTO:"), g);
         g.gridx = 1; g.gridwidth = 3; g.fill = GridBagConstraints.HORIZONTAL; g.weightx = 1.0;
         card.add(comboProduto, g);
 
-        // --- Linha 1: TIPO + ESTOQUE ATUAL ---
+        // Linha 1 — TIPO + ESTOQUE ATUAL
         g.gridwidth = 1; g.fill = GridBagConstraints.NONE; g.weightx = 0;
         g.gridx = 0; g.gridy = 1;
-        card.add(lbl("lbl.tipo.label", "TIPO:"), g);
+        card.add(lbl("TIPO:"), g);
 
         ButtonGroup grupo = new ButtonGroup();
         rdEntrada = radio(Mensagem.get("tipo.entrada"), grupo, true);
@@ -109,7 +107,6 @@ public class TelaMovimentacao extends JInternalFrame {
         painelTipo.setBackground(AppTheme.COR_PAINEL);
         painelTipo.add(rdEntrada);
         painelTipo.add(rdSaida);
-
         g.gridx = 1;
         card.add(painelTipo, g);
 
@@ -124,10 +121,10 @@ public class TelaMovimentacao extends JInternalFrame {
         g.gridx = 3; g.anchor = GridBagConstraints.WEST;
         card.add(lblEstoqueAtual, g);
 
-        // --- Linha 2: QUANTIDADE + DATA ---
+        // Linha 2 — QUANTIDADE + DATA
         g.anchor = GridBagConstraints.WEST;
         g.gridx = 0; g.gridy = 2; g.fill = GridBagConstraints.NONE; g.weightx = 0;
-        card.add(lbl("lbl.quantidade.label", "QUANTIDADE:"), g);
+        card.add(lbl("QUANTIDADE:"), g);
 
         campoQuantidade = new JTextField(8);
         Validador.aplicarFiltroInteiro(campoQuantidade);
@@ -135,17 +132,18 @@ public class TelaMovimentacao extends JInternalFrame {
         card.add(campoQuantidade, g);
 
         g.gridx = 2; g.anchor = GridBagConstraints.EAST;
-        card.add(lbl("lbl.data.label", "DATA (DD/MM/AAAA):"), g);
+        card.add(lbl("DATA (DD/MM/AAAA):"), g);
 
         campoData = new JTextField(10);
         campoData.setText(Formatador.dataHoje());
-        g.gridx = 3; g.anchor = GridBagConstraints.WEST; g.fill = GridBagConstraints.HORIZONTAL; g.weightx = 0.3;
+        g.gridx = 3; g.anchor = GridBagConstraints.WEST;
+        g.fill = GridBagConstraints.HORIZONTAL; g.weightx = 0.3;
         card.add(campoData, g);
 
-        // --- Linha 3: OBSERVAÇÃO ---
+        // Linha 3 — OBSERVAÇÃO
         g.fill = GridBagConstraints.NONE; g.weightx = 0; g.anchor = GridBagConstraints.WEST;
         g.gridx = 0; g.gridy = 3;
-        card.add(lbl("lbl.observacao.label", "OBSERVAÇÃO:"), g);
+        card.add(lbl("OBSERVAÇÃO:"), g);
 
         campoObservacao = new JTextField(40);
         g.gridx = 1; g.gridwidth = 3; g.fill = GridBagConstraints.HORIZONTAL; g.weightx = 1.0;
@@ -153,7 +151,6 @@ public class TelaMovimentacao extends JInternalFrame {
 
         painel.add(card, BorderLayout.CENTER);
 
-        // --- Botão REGISTRAR ---
         JPanel painelBotao = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         painelBotao.setBackground(AppTheme.COR_FUNDO);
 
@@ -221,7 +218,6 @@ public class TelaMovimentacao extends JInternalFrame {
         } catch (RuntimeException ex) {
             Mensagem.erro(this, "Erro ao carregar produtos:\n" + ex.getMessage());
         }
-        // Restaura seleção anterior (após atualização pós-registro)
         if (selecionado != null && selecionado.getId() > 0) {
             for (int i = 0; i < comboProduto.getItemCount(); i++) {
                 if (comboProduto.getItemAt(i).getId() == selecionado.getId()) {
@@ -238,13 +234,13 @@ public class TelaMovimentacao extends JInternalFrame {
         try {
             List<Movimentacao> lista = movService.listarRecentes(20);
             for (Movimentacao m : lista) {
-                String tipoDisplay = "SAIDA".equals(m.getTipo())
+                String tipo = "SAIDA".equals(m.getTipo())
                     ? Mensagem.get("tipo.saida")
                     : Mensagem.get("tipo.entrada");
                 modeloHistorico.addRow(new Object[]{
                     Formatador.formatarData(m.getData()),
                     m.getNomeProduto(),
-                    tipoDisplay,
+                    tipo,
                     m.getQuantidade(),
                     m.getObservacao() != null ? m.getObservacao() : ""
                 });
@@ -271,14 +267,12 @@ public class TelaMovimentacao extends JInternalFrame {
     // -------------------------------------------------------------------------
 
     private void acaoRegistrar() {
-        // Validação do produto
         Produto p = (Produto) comboProduto.getSelectedItem();
         if (p == null || p.getId() <= 0) {
             Mensagem.erro(this, "Selecione um PRODUTO.");
             return;
         }
 
-        // Validação da quantidade
         int quantidade;
         try {
             quantidade = Integer.parseInt(campoQuantidade.getText().trim());
@@ -288,7 +282,6 @@ public class TelaMovimentacao extends JInternalFrame {
             return;
         }
 
-        // Validação da data
         if (!Validador.isDataValida(campoData.getText())) {
             Mensagem.erro(this, "O campo DATA deve estar no formato DD/MM/AAAA e representar uma data válida.");
             return;
@@ -306,8 +299,8 @@ public class TelaMovimentacao extends JInternalFrame {
                 tipo.equals("ENTRADA") ? "Entrada registrada com sucesso!"
                                        : "Saída registrada com sucesso!");
             limparFormulario();
-            carregarProdutos();   // atualiza estoque no combo
-            carregarHistorico();  // atualiza tabela
+            carregarProdutos();
+            carregarHistorico();
         } catch (IllegalArgumentException ex) {
             Mensagem.erro(this, ex.getMessage());
         } catch (RuntimeException ex) {
@@ -324,12 +317,21 @@ public class TelaMovimentacao extends JInternalFrame {
     }
 
     // -------------------------------------------------------------------------
+    // Implementação de ModuloAcoes — delegação da toolbar de TelaMenu
+    // -------------------------------------------------------------------------
+
+    @Override public void acaoNovo()      { limparFormulario(); campoQuantidade.requestFocus(); }
+    @Override public void acaoSalvar()    { acaoRegistrar(); }
+    @Override public void acaoEditar()    { /* não aplicável neste módulo */ }
+    @Override public void acaoExcluir()   { /* não aplicável neste módulo */ }
+    @Override public void acaoPesquisar() { carregarHistorico(); }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 
-    private JLabel lbl(String chaveIgnorada, String textoFallback) {
-        // Usa o texto diretamente (label de campo, não de i18n neste contexto)
-        JLabel l = new JLabel(textoFallback);
+    private JLabel lbl(String texto) {
+        JLabel l = new JLabel(texto);
         l.setFont(AppTheme.FONTE_BOLD);
         return l;
     }

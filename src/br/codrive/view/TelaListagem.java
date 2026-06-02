@@ -21,7 +21,7 @@ import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.util.List;
 
-public class TelaListagem extends JInternalFrame {
+public class TelaListagem extends JInternalFrame implements ModuloAcoes {
 
     private JComboBox<String>  comboOrdenacao;
     private JLabel             lblTotal;
@@ -30,12 +30,11 @@ public class TelaListagem extends JInternalFrame {
 
     private final MovimentacaoService service = new MovimentacaoService();
 
-    // Índice do combo → critério de ordenação do DAO (ordem importa)
     private static final String[] CRITERIOS = {
-        MovimentacaoDAO.ORDEM_DATA_DESC,   // 0 — padrão: mais recentes primeiro
-        MovimentacaoDAO.ORDEM_DATA_ASC,    // 1
-        MovimentacaoDAO.ORDEM_PRODUTO_AZ,  // 2
-        MovimentacaoDAO.ORDEM_TIPO         // 3
+        MovimentacaoDAO.ORDEM_DATA_DESC,
+        MovimentacaoDAO.ORDEM_DATA_ASC,
+        MovimentacaoDAO.ORDEM_PRODUTO_AZ,
+        MovimentacaoDAO.ORDEM_TIPO
     };
 
     public TelaListagem() {
@@ -66,7 +65,6 @@ public class TelaListagem extends JInternalFrame {
         painel.setBackground(AppTheme.COR_FUNDO);
         painel.setBorder(BorderFactory.createEmptyBorder(0, 0, 4, 0));
 
-        // Esquerda: label + combo
         JPanel esquerda = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         esquerda.setBackground(AppTheme.COR_FUNDO);
 
@@ -82,8 +80,6 @@ public class TelaListagem extends JInternalFrame {
         comboOrdenacao.setFont(AppTheme.FONTE_DADOS);
         comboOrdenacao.setPreferredSize(
             new Dimension(210, comboOrdenacao.getPreferredSize().height));
-
-        // Recarrega automaticamente ao trocar ordenação
         comboOrdenacao.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) carregarListagem();
         });
@@ -91,7 +87,6 @@ public class TelaListagem extends JInternalFrame {
         esquerda.add(lblOrdenar);
         esquerda.add(comboOrdenacao);
 
-        // Direita: contador de registros
         lblTotal = new JLabel(" ");
         lblTotal.setFont(AppTheme.FONTE_LABEL);
         lblTotal.setForeground(AppTheme.COR_TEXTO);
@@ -121,8 +116,6 @@ public class TelaListagem extends JInternalFrame {
         tabela = new JTable(modeloTabela);
         AppTheme.estilizarTabela(tabela);
         tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
-        // Larguras fixas para colunas de conteúdo previsível
         tabela.getColumnModel().getColumn(0).setPreferredWidth(90);
         tabela.getColumnModel().getColumn(0).setMaxWidth(110);
         tabela.getColumnModel().getColumn(2).setPreferredWidth(75);
@@ -146,7 +139,6 @@ public class TelaListagem extends JInternalFrame {
         try {
             String criterio = CRITERIOS[comboOrdenacao.getSelectedIndex()];
             List<Movimentacao> lista = service.listarOrdenado(criterio);
-
             for (Movimentacao m : lista) {
                 String tipo = "SAIDA".equals(m.getTipo())
                     ? Mensagem.get("tipo.saida")
@@ -159,11 +151,19 @@ public class TelaListagem extends JInternalFrame {
                     m.getObservacao() != null ? m.getObservacao() : ""
                 });
             }
-
             lblTotal.setText(lista.size() + " registro(s) encontrado(s)  ");
-
         } catch (RuntimeException ex) {
             Mensagem.erro(this, "Erro ao carregar listagem:\n" + ex.getMessage());
         }
     }
+
+    // -------------------------------------------------------------------------
+    // Implementação de ModuloAcoes — delegação da toolbar de TelaMenu
+    // -------------------------------------------------------------------------
+
+    @Override public void acaoNovo()      { /* não aplicável neste módulo */ }
+    @Override public void acaoSalvar()    { /* não aplicável neste módulo */ }
+    @Override public void acaoEditar()    { /* não aplicável neste módulo */ }
+    @Override public void acaoExcluir()   { /* não aplicável neste módulo */ }
+    @Override public void acaoPesquisar() { carregarListagem(); }
 }

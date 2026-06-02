@@ -55,26 +55,19 @@ public class TelaMenu extends JFrame {
         menuBar.setBorderPainted(false);
         menuBar.setOpaque(true);
 
-        // CADASTROS → Categoria, Produto
         JMenu mCadastros = menu(Mensagem.get("menu.cadastros"));
-        JMenuItem iCategoria = item(Mensagem.get("menu.cadastros.categoria"), e -> abrirCategoria());
-        JMenuItem iProduto   = item(Mensagem.get("menu.cadastros.produto"),   e -> abrirProduto());
-        mCadastros.add(iCategoria);
-        mCadastros.add(iProduto);
+        mCadastros.add(item(Mensagem.get("menu.cadastros.categoria"), e -> abrirCategoria()));
+        mCadastros.add(item(Mensagem.get("menu.cadastros.produto"),   e -> abrirProduto()));
 
-        // MOVIMENTAÇÃO
         JMenu mMov = menu(Mensagem.get("menu.movimentacao"));
         mMov.add(item(Mensagem.get("titulo.movimentacao"), e -> abrirMovimentacao()));
 
-        // LISTAGEM
         JMenu mList = menu(Mensagem.get("menu.listagem"));
         mList.add(item(Mensagem.get("titulo.listagem"), e -> abrirListagem()));
 
-        // USUÁRIOS
         JMenu mUsr = menu(Mensagem.get("menu.usuarios"));
         mUsr.add(item(Mensagem.get("titulo.usuario"), e -> abrirUsuario()));
 
-        // CONFIGURAÇÕES
         JMenu mConf = menu(Mensagem.get("menu.configuracoes"));
         mConf.add(item(Mensagem.get("titulo.configuracoes"), e -> abrirConfiguracoes()));
 
@@ -137,14 +130,13 @@ public class TelaMenu extends JFrame {
     // Área central: sidebar + JDesktopPane
     // -------------------------------------------------------------------------
     private void construirConteudo() {
-        // --- Sidebar ---
         JPanel sidebar = new JPanel();
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
         sidebar.setBackground(AppTheme.COR_MENU);
         sidebar.setPreferredSize(new Dimension(180, 0));
         sidebar.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, AppTheme.COR_BORDA));
 
-        JLabel lblModulos = new JLabel("  " + Mensagem.get("status.modulo").toUpperCase() + "S");
+        JLabel lblModulos = new JLabel("  MÓDULOS");
         lblModulos.setFont(AppTheme.FONTE_CAB_TABELA);
         lblModulos.setForeground(new Color(0x9C, 0xA3, 0xAF));
         lblModulos.setBorder(BorderFactory.createEmptyBorder(12, 8, 8, 8));
@@ -164,7 +156,6 @@ public class TelaMenu extends JFrame {
         sidebar.add(botaoSidebar(Mensagem.get("sidebar.configuracoes"), e -> abrirConfiguracoes()));
         sidebar.add(Box.createVerticalGlue());
 
-        // --- JDesktopPane ---
         desktop = new JDesktopPane();
         desktop.setBackground(AppTheme.COR_DESKTOP);
 
@@ -256,29 +247,48 @@ public class TelaMenu extends JFrame {
     }
 
     // -------------------------------------------------------------------------
-    // Abertura de módulos — implementados na Parte 16
+    // Abertura de módulos
     // -------------------------------------------------------------------------
-    void abrirCategoria()    { /* Parte 16 */ }
-    void abrirProduto()      { /* Parte 16 */ }
-    void abrirMovimentacao() { /* Parte 16 */ }
-    void abrirListagem()     { /* Parte 16 */ }
-    void abrirUsuario()      { /* Parte 16 */ }
-    void abrirConfiguracoes(){ /* Parte 16 */ }
+    void abrirCategoria()    { abrirInternalFrame(new TelaCategoria()); }
+    void abrirProduto()      { abrirInternalFrame(new TelaProduto()); }
+    void abrirMovimentacao() { abrirInternalFrame(new TelaMovimentacao()); }
+    void abrirListagem()     { abrirInternalFrame(new TelaListagem()); }
+    void abrirUsuario()      { abrirInternalFrame(new TelaUsuario()); }
+    void abrirConfiguracoes(){ abrirInternalFrame(new TelaConfiguracoes()); }
 
     // -------------------------------------------------------------------------
-    // Ações da toolbar — delegadas para a JInternalFrame ativa na Parte 16
+    // Ações da toolbar — delegadas via ModuloAcoes para o módulo ativo
     // -------------------------------------------------------------------------
-    void acaoNovo()     { /* Parte 16 */ }
-    void acaoSalvar()   { /* Parte 16 */ }
-    void acaoEditar()   { /* Parte 16 */ }
-    void acaoExcluir()  { /* Parte 16 */ }
-    void acaoPesquisar(){ /* Parte 16 */ }
+    void acaoNovo() {
+        JInternalFrame f = desktop.getSelectedFrame();
+        if (f instanceof ModuloAcoes) ((ModuloAcoes) f).acaoNovo();
+    }
+
+    void acaoSalvar() {
+        JInternalFrame f = desktop.getSelectedFrame();
+        if (f instanceof ModuloAcoes) ((ModuloAcoes) f).acaoSalvar();
+    }
+
+    void acaoEditar() {
+        JInternalFrame f = desktop.getSelectedFrame();
+        if (f instanceof ModuloAcoes) ((ModuloAcoes) f).acaoEditar();
+    }
+
+    void acaoExcluir() {
+        JInternalFrame f = desktop.getSelectedFrame();
+        if (f instanceof ModuloAcoes) ((ModuloAcoes) f).acaoExcluir();
+    }
+
+    void acaoPesquisar() {
+        JInternalFrame f = desktop.getSelectedFrame();
+        if (f instanceof ModuloAcoes) ((ModuloAcoes) f).acaoPesquisar();
+    }
 
     // -------------------------------------------------------------------------
-    // Utilitários públicos usados pelas JInternalFrames (Partes 11-15)
+    // Utilitários públicos usados pelas JInternalFrames
     // -------------------------------------------------------------------------
 
-    /** Abre uma JInternalFrame no desktop, evitando duplicatas. */
+    /** Abre uma JInternalFrame em cascata, evitando duplicatas da mesma classe. */
     public void abrirInternalFrame(JInternalFrame frame) {
         for (JInternalFrame f : desktop.getAllFrames()) {
             if (f.getClass() == frame.getClass() && !f.isClosed()) {
@@ -287,6 +297,10 @@ public class TelaMenu extends JFrame {
                 return;
             }
         }
+        // Posicionamento em cascata (máximo 8 níveis antes de reiniciar)
+        int offset = (desktop.getAllFrames().length % 8) * 28;
+        frame.setLocation(offset, offset);
+
         frame.setVisible(true);
         desktop.add(frame);
         try { frame.setSelected(true); }

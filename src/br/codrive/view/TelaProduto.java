@@ -23,7 +23,7 @@ import java.awt.*;
 import java.util.List;
 import java.util.Locale;
 
-public class TelaProduto extends JInternalFrame {
+public class TelaProduto extends JInternalFrame implements ModuloAcoes {
 
     // Aba CADASTRO
     private JTextField           campoId, campoNome, campoValor, campoQuantidade;
@@ -96,17 +96,16 @@ public class TelaProduto extends JInternalFrame {
         Validador.aplicarFiltroDecimal(campoValor);
         campoQuantidade = campoReadOnly(10);
 
-        addFormRow(card, g, 0, Mensagem.get("lbl.codigo")    + ":", campoId);
-        addFormRow(card, g, 1, Mensagem.get("lbl.nome")      + ":", campoNome);
-        addFormRow(card, g, 2, Mensagem.get("lbl.categoria") + ":", comboCategoria);
-        addFormRow(card, g, 3, Mensagem.get("lbl.valor")     + ":", campoValor);
-        addFormRow(card, g, 4, Mensagem.get("lbl.quantidade")+ ":", campoQuantidade);
+        addFormRow(card, g, 0, Mensagem.get("lbl.codigo")     + ":", campoId);
+        addFormRow(card, g, 1, Mensagem.get("lbl.nome")       + ":", campoNome);
+        addFormRow(card, g, 2, Mensagem.get("lbl.categoria")  + ":", comboCategoria);
+        addFormRow(card, g, 3, Mensagem.get("lbl.valor")      + ":", campoValor);
+        addFormRow(card, g, 4, Mensagem.get("lbl.quantidade") + ":", campoQuantidade);
 
         campoNome.addActionListener(e -> { if (btnSalvar.isEnabled()) acaoSalvar(); });
 
         painel.add(card, BorderLayout.CENTER);
 
-        // Botões
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         painelBotoes.setBackground(AppTheme.COR_FUNDO);
 
@@ -139,7 +138,6 @@ public class TelaProduto extends JInternalFrame {
         painel.setBackground(AppTheme.COR_FUNDO);
         painel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // --- Barra de busca ---
         JPanel painelBusca = new JPanel(new BorderLayout(6, 0));
         painelBusca.setBackground(AppTheme.COR_FUNDO);
 
@@ -156,14 +154,13 @@ public class TelaProduto extends JInternalFrame {
         JButton btnPesquisar = new JButton(Mensagem.get("btn.pesquisar"));
         AppTheme.estilizarBotaoPrimario(btnPesquisar);
 
-        campoBusca.addActionListener(e   -> acaoPesquisar());
-        btnPesquisar.addActionListener(e -> acaoPesquisar());
+        campoBusca.addActionListener(e   -> executarBusca());
+        btnPesquisar.addActionListener(e -> executarBusca());
 
         painelBusca.add(comboTipoBusca, BorderLayout.WEST);
         painelBusca.add(campoBusca,     BorderLayout.CENTER);
         painelBusca.add(btnPesquisar,   BorderLayout.EAST);
 
-        // --- Tabela ---
         modeloTabela = new DefaultTableModel(new String[]{
             Mensagem.get("tabela.codigo"),
             Mensagem.get("tabela.nome"),
@@ -275,10 +272,11 @@ public class TelaProduto extends JInternalFrame {
     }
 
     // -------------------------------------------------------------------------
-    // Ações dos botões
+    // Implementação de ModuloAcoes — delegação da toolbar de TelaMenu
     // -------------------------------------------------------------------------
 
-    private void acaoNovo() {
+    @Override
+    public void acaoNovo() {
         definirEstadoInicial();
         carregarCategorias();
         setFormEnabled(true);
@@ -287,7 +285,8 @@ public class TelaProduto extends JInternalFrame {
         btnSalvar.setEnabled(true);
     }
 
-    private void acaoSalvar() {
+    @Override
+    public void acaoSalvar() {
         double valor;
         try {
             valor = Formatador.parseDecimal(campoValor.getText());
@@ -296,8 +295,8 @@ public class TelaProduto extends JInternalFrame {
             return;
         }
 
-        Categoria catSel  = (Categoria) comboCategoria.getSelectedItem();
-        int       idCat   = (catSel != null) ? catSel.getId() : 0;
+        Categoria catSel = (Categoria) comboCategoria.getSelectedItem();
+        int idCat = (catSel != null) ? catSel.getId() : 0;
 
         try {
             Produto p = (produtoAtual != null) ? produtoAtual : new Produto();
@@ -314,7 +313,6 @@ public class TelaProduto extends JInternalFrame {
                 Mensagem.sucesso(this, "Produto atualizado com sucesso!");
             }
 
-            // Rebusca para popular nomeCategoria via JOIN
             Produto atualizado = produtoService.buscarPorId(p.getId());
             if (atualizado != null) preencherFormulario(atualizado);
 
@@ -325,7 +323,8 @@ public class TelaProduto extends JInternalFrame {
         }
     }
 
-    private void acaoEditar() {
+    @Override
+    public void acaoEditar() {
         if (produtoAtual == null) return;
         setFormEnabled(true);
         campoNome.requestFocus();
@@ -335,7 +334,8 @@ public class TelaProduto extends JInternalFrame {
         btnExcluir.setEnabled(false);
     }
 
-    private void acaoExcluir() {
+    @Override
+    public void acaoExcluir() {
         if (produtoAtual == null) return;
         if (!Mensagem.confirmar(this, Mensagem.get("confirm.excluir"))) return;
         try {
@@ -349,7 +349,17 @@ public class TelaProduto extends JInternalFrame {
         }
     }
 
-    private void acaoPesquisar() {
+    @Override
+    public void acaoPesquisar() {
+        abas.setSelectedIndex(1);
+        campoBusca.requestFocus();
+    }
+
+    // -------------------------------------------------------------------------
+    // Ações internas
+    // -------------------------------------------------------------------------
+
+    private void executarBusca() {
         int    tipo  = comboTipoBusca.getSelectedIndex();
         String termo = campoBusca.getText().trim();
 
@@ -362,18 +372,17 @@ public class TelaProduto extends JInternalFrame {
         try {
             List<Produto> lista;
             switch (tipo) {
-                case 0: // POR CÓDIGO
-                    if (termo.isEmpty()) {
-                        lista = produtoService.listarTodos();
-                    } else {
+                case 0:
+                    if (termo.isEmpty()) lista = produtoService.listarTodos();
+                    else {
                         Produto p = produtoService.buscarPorId(Integer.parseInt(termo));
                         lista = (p != null) ? List.of(p) : List.of();
                     }
                     break;
-                case 2: // POR CATEGORIA
+                case 2:
                     lista = produtoService.buscarPorNomeCategoria(termo);
                     break;
-                default: // POR NOME
+                default:
                     lista = produtoService.buscarPorNome(termo);
             }
             preencherTabela(lista);
@@ -416,7 +425,6 @@ public class TelaProduto extends JInternalFrame {
         JLabel lbl = new JLabel(labelText);
         lbl.setFont(AppTheme.FONTE_BOLD);
         card.add(lbl, g);
-
         g.gridx = 1;
         g.fill = GridBagConstraints.HORIZONTAL; g.weightx = 1.0;
         card.add(campo, g);

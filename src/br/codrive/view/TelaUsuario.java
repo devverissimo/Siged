@@ -18,7 +18,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
-public class TelaUsuario extends JInternalFrame {
+public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
 
     // Aba CADASTRO
     private JTextField     campoId, campoNome, campoLogin;
@@ -70,7 +70,6 @@ public class TelaUsuario extends JInternalFrame {
         painel.setBackground(AppTheme.COR_FUNDO);
         painel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // --- Card formulário ---
         JPanel card = AppTheme.criarPainelCard();
         card.setLayout(new GridBagLayout());
         card.setBorder(BorderFactory.createCompoundBorder(
@@ -82,19 +81,15 @@ public class TelaUsuario extends JInternalFrame {
         g.insets = new Insets(7, 6, 7, 6);
         g.anchor = GridBagConstraints.WEST;
 
-        // Linha 0 — CÓD.
         campoId = campoReadOnly(8);
         addFormRow(card, g, 0, Mensagem.get("lbl.codigo") + ":", campoId);
 
-        // Linha 1 — NOME
         campoNome = new JTextField(28);
         addFormRow(card, g, 1, Mensagem.get("lbl.nome") + ":", campoNome);
 
-        // Linha 2 — LOGIN
         campoLogin = new JTextField(20);
         addFormRow(card, g, 2, Mensagem.get("lbl.login") + ":", campoLogin);
 
-        // Linha 3 — SENHA
         campoSenha = new JPasswordField(20);
         campoSenha.setFont(AppTheme.FONTE_DADOS);
         addFormRow(card, g, 3, Mensagem.get("lbl.senha") + ":", campoSenha);
@@ -104,7 +99,6 @@ public class TelaUsuario extends JInternalFrame {
 
         painel.add(card, BorderLayout.CENTER);
 
-        // --- Botões ---
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         painelBotoes.setBackground(AppTheme.COR_FUNDO);
 
@@ -137,7 +131,6 @@ public class TelaUsuario extends JInternalFrame {
         painel.setBackground(AppTheme.COR_FUNDO);
         painel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // --- Barra de busca ---
         JPanel painelBusca = new JPanel(new BorderLayout(6, 0));
         painelBusca.setBackground(AppTheme.COR_FUNDO);
 
@@ -156,7 +149,6 @@ public class TelaUsuario extends JInternalFrame {
         painelBusca.add(campoBusca,   BorderLayout.CENTER);
         painelBusca.add(btnPesquisar, BorderLayout.EAST);
 
-        // --- Tabela (sem coluna de senha) ---
         modeloTabela = new DefaultTableModel(new String[]{
             Mensagem.get("tabela.codigo"),
             Mensagem.get("tabela.nome"),
@@ -225,10 +217,11 @@ public class TelaUsuario extends JInternalFrame {
     }
 
     // -------------------------------------------------------------------------
-    // Ações dos botões
+    // Implementação de ModuloAcoes — delegação da toolbar de TelaMenu
     // -------------------------------------------------------------------------
 
-    private void acaoNovo() {
+    @Override
+    public void acaoNovo() {
         campoId.setText("");
         campoNome.setText("");
         campoLogin.setText("");
@@ -242,9 +235,9 @@ public class TelaUsuario extends JInternalFrame {
         btnExcluir.setEnabled(false);
     }
 
-    private void acaoSalvar() {
+    @Override
+    public void acaoSalvar() {
         String senha = new String(campoSenha.getPassword());
-
         try {
             Usuario u = usuarioAtual != null ? usuarioAtual : new Usuario();
             u.setNome(campoNome.getText());
@@ -268,7 +261,8 @@ public class TelaUsuario extends JInternalFrame {
         }
     }
 
-    private void acaoEditar() {
+    @Override
+    public void acaoEditar() {
         if (usuarioAtual == null) return;
         setFormEnabled(true);
         campoNome.requestFocus();
@@ -278,7 +272,8 @@ public class TelaUsuario extends JInternalFrame {
         btnExcluir.setEnabled(false);
     }
 
-    private void acaoExcluir() {
+    @Override
+    public void acaoExcluir() {
         if (usuarioAtual == null) return;
         if (!Mensagem.confirmar(this, Mensagem.get("confirm.excluir"))) return;
         try {
@@ -289,6 +284,16 @@ public class TelaUsuario extends JInternalFrame {
             Mensagem.erro(this, "Erro ao excluir usuário:\n" + ex.getMessage());
         }
     }
+
+    @Override
+    public void acaoPesquisar() {
+        abas.setSelectedIndex(1);
+        campoBusca.requestFocus();
+    }
+
+    // -------------------------------------------------------------------------
+    // Ações internas
+    // -------------------------------------------------------------------------
 
     private void selecionarDaTabela() {
         int row = tabela.getSelectedRow();
@@ -311,9 +316,7 @@ public class TelaUsuario extends JInternalFrame {
             List<Usuario> lista = service.buscarPorLoginOuNome(
                 termo == null ? "" : termo);
             for (Usuario u : lista) {
-                modeloTabela.addRow(new Object[]{
-                    u.getId(), u.getNome(), u.getLogin()
-                });
+                modeloTabela.addRow(new Object[]{u.getId(), u.getNome(), u.getLogin()});
             }
         } catch (RuntimeException ex) {
             Mensagem.erro(this, "Erro ao pesquisar usuários:\n" + ex.getMessage());
@@ -338,7 +341,6 @@ public class TelaUsuario extends JInternalFrame {
         JLabel lbl = new JLabel(labelText);
         lbl.setFont(AppTheme.FONTE_BOLD);
         card.add(lbl, g);
-
         g.gridx = 1;
         g.fill = GridBagConstraints.HORIZONTAL; g.weightx = 1.0;
         card.add(campo, g);
