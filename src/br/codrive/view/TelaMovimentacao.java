@@ -31,6 +31,7 @@ public class TelaMovimentacao extends JInternalFrame implements ModuloAcoes {
     private JRadioButton       rdEntrada, rdSaida;
     private JTextField         campoQuantidade, campoData, campoObservacao;
     private JLabel             lblEstoqueAtual;
+    private JButton            btnNovo;
     private JButton            btnRegistrar;
     private JButton            btnLimpar;
     private JPanel             painelFormConteudo;
@@ -67,15 +68,22 @@ public class TelaMovimentacao extends JInternalFrame implements ModuloAcoes {
         painelFormConteudo.add(criarPainelOrientativo(), "ORIENTATIVO");
         painelFormConteudo.add(formPanel,                "FORMULARIO");
 
+        btnNovo = new JButton(Mensagem.get("btn.novo"));
+        AppTheme.estilizarBotaoToolbar(btnNovo);
+        btnNovo.addActionListener(e -> acaoNovo());
+
         btnLimpar = new JButton("LIMPAR");
         AppTheme.estilizarBotaoSecundario(btnLimpar);
         btnLimpar.addActionListener(e -> limparFormulario());
+
+        btnNovo.setEnabled(true);
         btnRegistrar.setEnabled(false);
         btnLimpar.setEnabled(false);
 
         JPanel barraAcoes = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 6));
         barraAcoes.setBackground(new Color(0xF3, 0xF4, 0xF6));
         barraAcoes.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, AppTheme.COR_BORDA));
+        barraAcoes.add(btnNovo);
         barraAcoes.add(btnRegistrar);
         barraAcoes.add(btnLimpar);
 
@@ -319,6 +327,7 @@ public class TelaMovimentacao extends JInternalFrame implements ModuloAcoes {
             carregarProdutos();
             carregarHistorico();
             ((CardLayout) painelFormConteudo.getLayout()).show(painelFormConteudo, "ORIENTATIVO");
+            btnNovo.setEnabled(true);
             btnRegistrar.setEnabled(false);
             btnLimpar.setEnabled(false);
         } catch (IllegalArgumentException ex) {
@@ -342,6 +351,7 @@ public class TelaMovimentacao extends JInternalFrame implements ModuloAcoes {
 
     @Override public void acaoNovo() {
         ((CardLayout) painelFormConteudo.getLayout()).show(painelFormConteudo, "FORMULARIO");
+        btnNovo.setEnabled(false);
         btnRegistrar.setEnabled(true);
         btnLimpar.setEnabled(true);
         limparFormulario();

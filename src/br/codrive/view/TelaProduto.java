@@ -453,6 +453,7 @@ public class TelaProduto extends JInternalFrame implements ModuloAcoes {
 
     /** Chamado pela topbar de TelaMenu para filtrar produtos na aba PESQUISA. */
     public void pesquisarDireto(String termo) {
+        System.out.println("[BUSCA] pesquisarDireto chamado: " + termo);
         campoBusca.setText(termo);
         comboTipoBusca.setSelectedIndex(Validador.isInteiroValido(termo.trim()) ? 0 : 1);
         abas.setSelectedIndex(1);

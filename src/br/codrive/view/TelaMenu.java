@@ -30,6 +30,7 @@ public class TelaMenu extends JFrame {
     private JButton itemAtivo;
     private JButton navDashboard, navCadastros, navMovimentacao,
                     navListagem, navConfiguracoes;
+    private JTextField campoBuscaTopbar;
 
     public TelaMenu(Usuario usuario) {
         this.usuarioLogado = usuario;
@@ -83,7 +84,7 @@ public class TelaMenu extends JFrame {
         JPanel painelBusca = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 10));
         painelBusca.setBackground(AppTheme.COR_MENU);
 
-        JTextField campoBuscaTopbar = new JTextField() {
+        campoBuscaTopbar = new JTextField() {
             @Override protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 if (getText().isEmpty() && !isFocusOwner()) {
@@ -194,14 +195,17 @@ public class TelaMenu extends JFrame {
 
     private void pesquisarNaTelaProduto(String termo) {
         if (termo == null || termo.isBlank()) return;
+        System.out.println("[BUSCA] Iniciando busca por: " + termo);
         setItemAtivo(navCadastros);
         abrirProduto();
         for (JInternalFrame f : desktop.getAllFrames()) {
             if (f instanceof TelaProduto && !f.isClosed()) {
+                System.out.println("[BUSCA] TelaProduto encontrada, disparando pesquisarDireto");
                 ((TelaProduto) f).pesquisarDireto(termo);
                 return;
             }
         }
+        System.out.println("[BUSCA] TelaProduto nao encontrada no desktop");
     }
 
     private String extrairIniciais(String nome) {
