@@ -449,6 +449,9 @@ public class TelaProduto extends JInternalFrame implements ModuloAcoes {
         comboTipoBusca.setSelectedIndex(Validador.isInteiroValido(termo.trim()) ? 0 : 1);
         abas.setSelectedIndex(1);
         executarBusca();
+        if (modeloTabela.getRowCount() == 0) {
+            Mensagem.erro(this, "Nenhum produto encontrado para: " + termo);
+        }
     }
 
     // -------------------------------------------------------------------------

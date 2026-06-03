@@ -157,8 +157,13 @@ public class TelaMenu extends JFrame {
             BorderFactory.createLineBorder(AppTheme.COR_BORDA, 1),
             BorderFactory.createEmptyBorder(2, 8, 2, 8)
         ));
-        campoBuscaTopbar.addActionListener(
-            e -> pesquisarNaTelaProduto(campoBuscaTopbar.getText().trim()));
+        campoBuscaTopbar.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER)
+                    pesquisarNaTelaProduto(campoBuscaTopbar.getText().trim());
+            }
+        });
         campoBuscaTopbar.addFocusListener(new FocusAdapter() {
             @Override public void focusGained(FocusEvent e) { campoBuscaTopbar.repaint(); }
             @Override public void focusLost (FocusEvent e)  { campoBuscaTopbar.repaint(); }
@@ -228,8 +233,12 @@ public class TelaMenu extends JFrame {
         if (termo == null || termo.isBlank()) return;
         setItemAtivo(navCadastros);
         abrirProduto();
-        JInternalFrame f = desktop.getSelectedFrame();
-        if (f instanceof TelaProduto) ((TelaProduto) f).pesquisarDireto(termo);
+        for (JInternalFrame f : desktop.getAllFrames()) {
+            if (f instanceof TelaProduto && !f.isClosed()) {
+                ((TelaProduto) f).pesquisarDireto(termo);
+                return;
+            }
+        }
     }
 
     private String extrairIniciais(String nome) {
