@@ -25,8 +25,6 @@ public class TelaMenu extends JFrame {
     private JDesktopPane     desktop;
     private JLabel           lblStatusModulo;
 
-    private JButton btnNovo, btnSalvar, btnEditar, btnExcluir, btnPesquisar;
-
     private static final Color COR_SIDEBAR = new Color(0x1F, 0x29, 0x37);
     private final List<JButton> itensNav   = new ArrayList<>();
     private JButton itemAtivo;
@@ -37,7 +35,7 @@ public class TelaMenu extends JFrame {
         this.usuarioLogado = usuario;
         configurarJanela();
         construirMenuBar();
-        construirToolbar();
+        construirTopbar();
         construirConteudo();
         construirStatusBar();
         SwingUtilities.invokeLater(this::abrirDashboard);
@@ -103,33 +101,142 @@ public class TelaMenu extends JFrame {
     }
 
     // -------------------------------------------------------------------------
-    // Toolbar F2-F8
+    // Topbar
     // -------------------------------------------------------------------------
-    private void construirToolbar() {
-        JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
-        toolbar.setBackground(new Color(0x2D, 0x3A, 0x4A));
-        toolbar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, AppTheme.COR_BORDA));
+    private void construirTopbar() {
+        JPanel topbar = new JPanel(new BorderLayout());
+        topbar.setBackground(AppTheme.COR_MENU);
+        topbar.setPreferredSize(new Dimension(0, 50));
+        topbar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, AppTheme.COR_BORDA));
 
-        btnNovo      = botaoToolbar(Mensagem.get("btn.novo"),      e -> acaoNovo());
-        btnSalvar    = botaoToolbar(Mensagem.get("btn.salvar"),    e -> acaoSalvar());
-        btnEditar    = botaoToolbar(Mensagem.get("btn.editar"),    e -> acaoEditar());
-        btnExcluir   = botaoToolbar(Mensagem.get("btn.excluir"),   e -> acaoExcluir());
-        btnPesquisar = botaoToolbar(Mensagem.get("btn.pesquisar"), e -> acaoPesquisar());
+        // ESQUERDA — saudação
+        JPanel painelSaudacao = new JPanel();
+        painelSaudacao.setLayout(new BoxLayout(painelSaudacao, BoxLayout.Y_AXIS));
+        painelSaudacao.setBackground(AppTheme.COR_MENU);
+        painelSaudacao.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
 
-        toolbar.add(btnNovo);
-        toolbar.add(btnSalvar);
-        toolbar.add(btnEditar);
-        toolbar.add(btnExcluir);
-        toolbar.add(btnPesquisar);
+        JLabel lblBemVindo = new JLabel("BEM-VINDO");
+        lblBemVindo.setFont(new Font("SansSerif", Font.PLAIN, 10));
+        lblBemVindo.setForeground(new Color(0x9C, 0xA3, 0xAF));
+        lblBemVindo.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        getContentPane().add(toolbar, BorderLayout.NORTH);
+        JLabel lblNome = new JLabel(usuarioLogado.getNome().toUpperCase());
+        lblNome.setFont(new Font("SansSerif", Font.BOLD, 12));
+        lblNome.setForeground(AppTheme.COR_BRANCO);
+        lblNome.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        painelSaudacao.add(lblBemVindo);
+        painelSaudacao.add(lblNome);
+
+        // CENTRO — campo de busca com placeholder via paintComponent
+        JPanel painelBusca = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 10));
+        painelBusca.setBackground(AppTheme.COR_MENU);
+
+        JTextField campoBuscaTopbar = new JTextField() {
+            @Override protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (getText().isEmpty() && !isFocusOwner()) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                                        RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(0x9C, 0xA3, 0xAF));
+                    g2.setFont(getFont());
+                    FontMetrics fm = g2.getFontMetrics();
+                    int x = getInsets().left + 2;
+                    int y = (getHeight() + fm.getAscent() - fm.getDescent()) / 2;
+                    g2.drawString("Buscar produto...", x, y);
+                    g2.dispose();
+                }
+            }
+        };
+        campoBuscaTopbar.setPreferredSize(new Dimension(350, 30));
+        campoBuscaTopbar.setFont(AppTheme.FONTE_DADOS);
+        campoBuscaTopbar.setBackground(Color.WHITE);
+        campoBuscaTopbar.setForeground(new Color(0x1F, 0x29, 0x37));
+        campoBuscaTopbar.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(AppTheme.COR_BORDA, 1),
+            BorderFactory.createEmptyBorder(2, 8, 2, 8)
+        ));
+        campoBuscaTopbar.addActionListener(
+            e -> pesquisarNaTelaProduto(campoBuscaTopbar.getText().trim()));
+        campoBuscaTopbar.addFocusListener(new FocusAdapter() {
+            @Override public void focusGained(FocusEvent e) { campoBuscaTopbar.repaint(); }
+            @Override public void focusLost (FocusEvent e)  { campoBuscaTopbar.repaint(); }
+        });
+        painelBusca.add(campoBuscaTopbar);
+
+        // DIREITA — botão avatar redondo com popup
+        JPanel painelDireita = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 7));
+        painelDireita.setBackground(AppTheme.COR_MENU);
+
+        final String iniciais = extrairIniciais(usuarioLogado.getNome());
+        JButton btnAvatar = new JButton(iniciais) {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                                    RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(AppTheme.COR_PRIMARIA);
+                g2.fillOval(0, 0, getWidth() - 1, getHeight() - 1);
+                g2.setColor(Color.WHITE);
+                g2.setFont(new Font("SansSerif", Font.BOLD, 13));
+                FontMetrics fm = g2.getFontMetrics();
+                String txt = getText();
+                int x = (getWidth() - fm.stringWidth(txt)) / 2;
+                int y = (getHeight() + fm.getAscent() - fm.getDescent()) / 2;
+                g2.drawString(txt, x, y);
+                g2.dispose();
+            }
+        };
+        btnAvatar.setContentAreaFilled(false);
+        btnAvatar.setBorderPainted(false);
+        btnAvatar.setFocusPainted(false);
+        btnAvatar.setOpaque(false);
+        btnAvatar.setPreferredSize(new Dimension(36, 36));
+        btnAvatar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnAvatar.addActionListener(e -> mostrarMenuUsuario(btnAvatar));
+        painelDireita.add(btnAvatar);
+
+        topbar.add(painelSaudacao, BorderLayout.WEST);
+        topbar.add(painelBusca,    BorderLayout.CENTER);
+        topbar.add(painelDireita,  BorderLayout.EAST);
+
+        getContentPane().add(topbar, BorderLayout.NORTH);
     }
 
-    private JButton botaoToolbar(String texto, ActionListener al) {
-        JButton btn = new JButton(texto);
-        AppTheme.estilizarBotaoToolbar(btn);
-        btn.addActionListener(al);
-        return btn;
+    private void mostrarMenuUsuario(JButton origem) {
+        JPopupMenu popup = new JPopupMenu();
+
+        JMenuItem itemPerfil = new JMenuItem("Meu Perfil");
+        itemPerfil.setFont(AppTheme.FONTE_LABEL);
+        itemPerfil.addActionListener(e -> {
+            abrirUsuario();
+            JInternalFrame f = desktop.getSelectedFrame();
+            if (f instanceof TelaUsuario) ((TelaUsuario) f).editarUsuarioDireto(usuarioLogado);
+        });
+
+        JMenuItem itemSair = new JMenuItem("Sair");
+        itemSair.setFont(AppTheme.FONTE_LABEL);
+        itemSair.addActionListener(e -> { dispose(); new TelaLogin().setVisible(true); });
+
+        popup.add(itemPerfil);
+        popup.addSeparator();
+        popup.add(itemSair);
+        popup.show(origem, 0, origem.getHeight());
+    }
+
+    private void pesquisarNaTelaProduto(String termo) {
+        if (termo == null || termo.isBlank()) return;
+        setItemAtivo(navCadastros);
+        abrirProduto();
+        JInternalFrame f = desktop.getSelectedFrame();
+        if (f instanceof TelaProduto) ((TelaProduto) f).pesquisarDireto(termo);
+    }
+
+    private String extrairIniciais(String nome) {
+        if (nome == null || nome.isBlank()) return "?";
+        String[] partes = nome.trim().toUpperCase().split("\\s+");
+        if (partes.length >= 2) return "" + partes[0].charAt(0) + partes[partes.length - 1].charAt(0);
+        return partes[0].length() >= 2 ? partes[0].substring(0, 2) : partes[0].substring(0, 1);
     }
 
     // -------------------------------------------------------------------------
@@ -337,34 +444,6 @@ public class TelaMenu extends JFrame {
         try { dash.setSelected(true); }
         catch (PropertyVetoException ex) { /* ignora */ }
         atualizarStatusModulo(dash.getTitle());
-    }
-
-    // -------------------------------------------------------------------------
-    // Ações da toolbar — delegadas via ModuloAcoes para o módulo ativo
-    // -------------------------------------------------------------------------
-    void acaoNovo() {
-        JInternalFrame f = desktop.getSelectedFrame();
-        if (f instanceof ModuloAcoes) ((ModuloAcoes) f).acaoNovo();
-    }
-
-    void acaoSalvar() {
-        JInternalFrame f = desktop.getSelectedFrame();
-        if (f instanceof ModuloAcoes) ((ModuloAcoes) f).acaoSalvar();
-    }
-
-    void acaoEditar() {
-        JInternalFrame f = desktop.getSelectedFrame();
-        if (f instanceof ModuloAcoes) ((ModuloAcoes) f).acaoEditar();
-    }
-
-    void acaoExcluir() {
-        JInternalFrame f = desktop.getSelectedFrame();
-        if (f instanceof ModuloAcoes) ((ModuloAcoes) f).acaoExcluir();
-    }
-
-    void acaoPesquisar() {
-        JInternalFrame f = desktop.getSelectedFrame();
-        if (f instanceof ModuloAcoes) ((ModuloAcoes) f).acaoPesquisar();
     }
 
     // -------------------------------------------------------------------------

@@ -56,15 +56,41 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
         raiz.setBackground(AppTheme.COR_FUNDO);
         raiz.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
 
+        JPanel abaCadastroPanel = construirAbaCadastro();
+        JPanel abaPesquisaPanel = construirAbaPesquisa();
+
+        JPanel barraAcoes = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 6));
+        barraAcoes.setBackground(new Color(0xF3, 0xF4, 0xF6));
+        barraAcoes.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, AppTheme.COR_BORDA));
+        barraAcoes.add(btnSalvar);
+        barraAcoes.add(btnCancelar);
+        barraAcoes.add(btnEditarPesquisa);
+        barraAcoes.add(btnExcluirPesquisa);
+        btnEditarPesquisa.setVisible(false);
+        btnExcluirPesquisa.setVisible(false);
+
         abas = new JTabbedPane();
-        abas.add(Mensagem.get("tab.cadastro"), construirAbaCadastro());
-        abas.add(Mensagem.get("tab.pesquisa"), construirAbaPesquisa());
+        abas.add(Mensagem.get("tab.cadastro"), abaCadastroPanel);
+        abas.add(Mensagem.get("tab.pesquisa"), abaPesquisaPanel);
 
         abas.addChangeListener(e -> {
-            if (abas.getSelectedIndex() == 1) carregarTabela(campoBusca.getText());
+            boolean cadastro = abas.getSelectedIndex() == 0;
+            btnSalvar.setVisible(cadastro);
+            btnCancelar.setVisible(cadastro);
+            if (!cadastro) {
+                btnEditarPesquisa.setEnabled(false);
+                btnExcluirPesquisa.setEnabled(false);
+                btnEditarPesquisa.setVisible(true);
+                btnExcluirPesquisa.setVisible(true);
+                carregarTabela(campoBusca.getText());
+            } else {
+                btnEditarPesquisa.setVisible(false);
+                btnExcluirPesquisa.setVisible(false);
+            }
         });
 
-        raiz.add(abas, BorderLayout.CENTER);
+        raiz.add(barraAcoes, BorderLayout.NORTH);
+        raiz.add(abas,       BorderLayout.CENTER);
         setContentPane(raiz);
     }
 
@@ -106,22 +132,15 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
         painelConteudo.add(card,                     "FORMULARIO");
         painel.add(painelConteudo, BorderLayout.CENTER);
 
-        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
-        painelBotoes.setBackground(AppTheme.COR_FUNDO);
-
         btnSalvar   = new JButton(Mensagem.get("btn.salvar"));
         btnCancelar = new JButton("CANCELAR");
 
         AppTheme.estilizarBotaoPrimario(btnSalvar);
-        AppTheme.estilizarBotaoToolbar(btnCancelar);
+        AppTheme.estilizarBotaoSecundario(btnCancelar);
 
         btnSalvar.addActionListener(e   -> acaoSalvar());
         btnCancelar.addActionListener(e -> definirEstadoInicial());
 
-        painelBotoes.add(btnSalvar);
-        painelBotoes.add(btnCancelar);
-
-        painel.add(painelBotoes, BorderLayout.SOUTH);
         return painel;
     }
 
@@ -174,22 +193,17 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
         JScrollPane scroll = new JScrollPane(tabela);
         scroll.setBorder(BorderFactory.createLineBorder(AppTheme.COR_BORDA));
 
-        JPanel painelAcoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 4));
-        painelAcoes.setBackground(AppTheme.COR_FUNDO);
         btnEditarPesquisa  = new JButton(Mensagem.get("btn.editar"));
         btnExcluirPesquisa = new JButton(Mensagem.get("btn.excluir"));
         AppTheme.estilizarBotaoPrimario(btnEditarPesquisa);
-        AppTheme.estilizarBotaoToolbar(btnExcluirPesquisa);
+        AppTheme.estilizarBotaoDestrutivo(btnExcluirPesquisa);
         btnEditarPesquisa.setEnabled(false);
         btnExcluirPesquisa.setEnabled(false);
         btnEditarPesquisa.addActionListener(e  -> editarSelecionado());
         btnExcluirPesquisa.addActionListener(e -> excluirSelecionado());
-        painelAcoes.add(btnEditarPesquisa);
-        painelAcoes.add(btnExcluirPesquisa);
 
         painel.add(painelBusca, BorderLayout.NORTH);
         painel.add(scroll,      BorderLayout.CENTER);
-        painel.add(painelAcoes, BorderLayout.SOUTH);
         return painel;
     }
 
@@ -306,6 +320,12 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
         } catch (RuntimeException ex) {
             Mensagem.erro(this, "Erro ao carregar usuário:\n" + ex.getMessage());
         }
+    }
+
+    /** Chamado pelo popup "Meu Perfil" da topbar de TelaMenu. */
+    public void editarUsuarioDireto(Usuario u) {
+        usuarioAtual = u;
+        editarSelecionado();
     }
 
     private void editarSelecionado() {

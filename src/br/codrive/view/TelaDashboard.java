@@ -22,6 +22,7 @@ public class TelaDashboard extends JInternalFrame {
     private static final Color COR_LABEL_MUTED = new Color(0x6B, 0x72, 0x80);
 
     private final DashboardDAO dao = new DashboardDAO();
+    private JPanel painelCards;
 
     public TelaDashboard() {
         super("Dashboard", true, true, true, true);
@@ -38,20 +39,38 @@ public class TelaDashboard extends JInternalFrame {
         raiz.setBackground(AppTheme.COR_FUNDO);
 
         raiz.add(construirCabecalho(), BorderLayout.NORTH);
-        raiz.add(construirCards(),     BorderLayout.CENTER);
+        painelCards = construirCards();
+        raiz.add(painelCards,          BorderLayout.CENTER);
 
         setContentPane(raiz);
     }
 
     private JPanel construirCabecalho() {
-        JPanel painel = new JPanel(new FlowLayout(FlowLayout.LEFT, 16, 10));
+        JPanel painel = new JPanel(new BorderLayout());
         painel.setBackground(AppTheme.COR_MENU);
+        painel.setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 16));
 
         JLabel lbl = new JLabel("PAINEL DE CONTROLE");
         lbl.setFont(AppTheme.FONTE_TITULO);
         lbl.setForeground(AppTheme.COR_PRIMARIA);
-        painel.add(lbl);
+        lbl.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+
+        JButton btnAtualizar = new JButton("ATUALIZAR");
+        AppTheme.estilizarBotaoSecundario(btnAtualizar);
+        btnAtualizar.addActionListener(e -> recarregar());
+
+        painel.add(lbl,          BorderLayout.WEST);
+        painel.add(btnAtualizar, BorderLayout.EAST);
         return painel;
+    }
+
+    private void recarregar() {
+        java.awt.Container raiz = getContentPane();
+        raiz.remove(painelCards);
+        painelCards = construirCards();
+        raiz.add(painelCards, BorderLayout.CENTER);
+        raiz.revalidate();
+        raiz.repaint();
     }
 
     private JPanel construirCards() {

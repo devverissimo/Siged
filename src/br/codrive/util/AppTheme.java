@@ -176,7 +176,33 @@ public class AppTheme {
         botao.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     }
 
-    /** Botão escuro — toolbar ([F2] NOVO, [F3] SALVAR, etc.) e ações secundárias. */
+    /** Botão secundário — ações neutras: CANCELAR, LIMPAR, ATUALIZAR. */
+    public static void estilizarBotaoSecundario(JButton botao) {
+        botao.setBackground(Color.WHITE);
+        botao.setForeground(COR_TEXTO);
+        botao.setFont(FONTE_BOLD);
+        botao.setFocusPainted(false);
+        botao.setBorderPainted(true);
+        botao.setBorder(BorderFactory.createLineBorder(COR_BORDA, 1));
+        botao.setOpaque(true);
+        botao.setMargin(new Insets(4, 10, 4, 10));
+        botao.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    }
+
+    /** Botão destrutivo — ações irreversíveis: EXCLUIR. */
+    public static void estilizarBotaoDestrutivo(JButton botao) {
+        botao.setBackground(new Color(0xFE, 0xE2, 0xE2));
+        botao.setForeground(new Color(0x7F, 0x1D, 0x1D));
+        botao.setFont(FONTE_BOLD);
+        botao.setFocusPainted(false);
+        botao.setBorderPainted(true);
+        botao.setBorder(BorderFactory.createLineBorder(new Color(0xFE, 0xCA, 0xCA), 1));
+        botao.setOpaque(true);
+        botao.setMargin(new Insets(4, 10, 4, 10));
+        botao.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    }
+
+    /** Botão escuro — toolbar e ações secundárias (legado). */
     public static void estilizarBotaoToolbar(JButton botao) {
         botao.setBackground(COR_MENU);
         botao.setForeground(COR_BRANCO);

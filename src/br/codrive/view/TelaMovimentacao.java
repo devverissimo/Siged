@@ -32,6 +32,7 @@ public class TelaMovimentacao extends JInternalFrame implements ModuloAcoes {
     private JTextField         campoQuantidade, campoData, campoObservacao;
     private JLabel             lblEstoqueAtual;
     private JButton            btnRegistrar;
+    private JButton            btnLimpar;
     private JPanel             painelFormConteudo;
 
     // Histórico
@@ -57,7 +58,7 @@ public class TelaMovimentacao extends JInternalFrame implements ModuloAcoes {
     // -------------------------------------------------------------------------
 
     private void construirInterface() {
-        JPanel raiz = new JPanel(new BorderLayout(0, 8));
+        JPanel raiz = new JPanel(new BorderLayout());
         raiz.setBackground(AppTheme.COR_FUNDO);
         raiz.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
@@ -65,8 +66,26 @@ public class TelaMovimentacao extends JInternalFrame implements ModuloAcoes {
         painelFormConteudo = new JPanel(new CardLayout());
         painelFormConteudo.add(criarPainelOrientativo(), "ORIENTATIVO");
         painelFormConteudo.add(formPanel,                "FORMULARIO");
-        raiz.add(painelFormConteudo, BorderLayout.NORTH);
-        raiz.add(construirPainelHistorico(),  BorderLayout.CENTER);
+
+        btnLimpar = new JButton("LIMPAR");
+        AppTheme.estilizarBotaoSecundario(btnLimpar);
+        btnLimpar.addActionListener(e -> limparFormulario());
+        btnRegistrar.setEnabled(false);
+        btnLimpar.setEnabled(false);
+
+        JPanel barraAcoes = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 6));
+        barraAcoes.setBackground(new Color(0xF3, 0xF4, 0xF6));
+        barraAcoes.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, AppTheme.COR_BORDA));
+        barraAcoes.add(btnRegistrar);
+        barraAcoes.add(btnLimpar);
+
+        JPanel conteudo = new JPanel(new BorderLayout(0, 8));
+        conteudo.setBackground(AppTheme.COR_FUNDO);
+        conteudo.add(painelFormConteudo,         BorderLayout.NORTH);
+        conteudo.add(construirPainelHistorico(), BorderLayout.CENTER);
+
+        raiz.add(barraAcoes, BorderLayout.NORTH);
+        raiz.add(conteudo,   BorderLayout.CENTER);
 
         setContentPane(raiz);
     }
@@ -156,17 +175,10 @@ public class TelaMovimentacao extends JInternalFrame implements ModuloAcoes {
 
         painel.add(card, BorderLayout.CENTER);
 
-        JPanel painelBotao = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
-        painelBotao.setBackground(AppTheme.COR_FUNDO);
-
         btnRegistrar = new JButton(Mensagem.get("btn.registrar"));
-        btnRegistrar.setPreferredSize(new Dimension(160, 34));
         AppTheme.estilizarBotaoPrimario(btnRegistrar);
         btnRegistrar.addActionListener(e -> acaoRegistrar());
         campoQuantidade.addActionListener(e -> acaoRegistrar());
-
-        painelBotao.add(btnRegistrar);
-        painel.add(painelBotao, BorderLayout.SOUTH);
 
         return painel;
     }
@@ -307,6 +319,8 @@ public class TelaMovimentacao extends JInternalFrame implements ModuloAcoes {
             carregarProdutos();
             carregarHistorico();
             ((CardLayout) painelFormConteudo.getLayout()).show(painelFormConteudo, "ORIENTATIVO");
+            btnRegistrar.setEnabled(false);
+            btnLimpar.setEnabled(false);
         } catch (IllegalArgumentException ex) {
             Mensagem.erro(this, ex.getMessage());
         } catch (RuntimeException ex) {
@@ -328,6 +342,8 @@ public class TelaMovimentacao extends JInternalFrame implements ModuloAcoes {
 
     @Override public void acaoNovo() {
         ((CardLayout) painelFormConteudo.getLayout()).show(painelFormConteudo, "FORMULARIO");
+        btnRegistrar.setEnabled(true);
+        btnLimpar.setEnabled(true);
         limparFormulario();
         campoQuantidade.requestFocus();
     }

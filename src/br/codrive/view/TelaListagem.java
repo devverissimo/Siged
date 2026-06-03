@@ -91,8 +91,18 @@ public class TelaListagem extends JInternalFrame implements ModuloAcoes {
         lblTotal.setFont(AppTheme.FONTE_LABEL);
         lblTotal.setForeground(AppTheme.COR_TEXTO);
 
+        JPanel direita = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        direita.setBackground(AppTheme.COR_FUNDO);
+
+        JButton btnAtualizar = new JButton("ATUALIZAR");
+        AppTheme.estilizarBotaoSecundario(btnAtualizar);
+        btnAtualizar.addActionListener(e -> carregarListagem());
+
+        direita.add(lblTotal);
+        direita.add(btnAtualizar);
+
         painel.add(esquerda, BorderLayout.WEST);
-        painel.add(lblTotal,  BorderLayout.EAST);
+        painel.add(direita,  BorderLayout.EAST);
         return painel;
     }
 
