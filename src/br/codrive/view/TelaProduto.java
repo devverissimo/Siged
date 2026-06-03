@@ -50,6 +50,7 @@ public class TelaProduto extends JInternalFrame implements ModuloAcoes {
         setSize(720, 500);
         setMinimumSize(new Dimension(600, 440));
         construirInterface();
+        carregarCategorias();
         definirEstadoInicial();
     }
 
@@ -263,7 +264,7 @@ public class TelaProduto extends JInternalFrame implements ModuloAcoes {
         campoNome.setText("");
         campoValor.setText("");
         campoQuantidade.setText("");
-        comboCategoria.setSelectedIndex(0);
+        if (comboCategoria.getItemCount() > 0) comboCategoria.setSelectedIndex(0);
         produtoAtual = null;
         setFormEnabled(false);
         btnNovo.setEnabled(true);
