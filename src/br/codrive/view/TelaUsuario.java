@@ -12,6 +12,7 @@ import br.codrive.model.Usuario;
 import br.codrive.service.UsuarioService;
 import br.codrive.util.AppTheme;
 import br.codrive.util.Mensagem;
+import br.codrive.util.Validador;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -82,6 +83,7 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
         g.anchor = GridBagConstraints.WEST;
 
         campoId = campoReadOnly(8);
+        Validador.aplicarFiltroInteiro(campoId);
         addFormRow(card, g, 0, Mensagem.get("lbl.codigo") + ":", campoId);
 
         campoNome = new JTextField(28);
@@ -186,6 +188,8 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
 
     private void definirEstadoInicial() {
         campoId.setText("");
+        campoId.setEditable(false);
+        campoId.setBackground(AppTheme.COR_LINHA_PAR);
         campoNome.setText("");
         campoLogin.setText("");
         campoSenha.setText("");
@@ -200,6 +204,8 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
     private void preencherFormulario(Usuario u) {
         usuarioAtual = u;
         campoId.setText(String.valueOf(u.getId()));
+        campoId.setEditable(false);
+        campoId.setBackground(AppTheme.COR_LINHA_PAR);
         campoNome.setText(u.getNome());
         campoLogin.setText(u.getLogin());
         campoSenha.setText(u.getSenha());
@@ -223,12 +229,14 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
     @Override
     public void acaoNovo() {
         campoId.setText("");
+        campoId.setEditable(true);
+        campoId.setBackground(AppTheme.COR_PAINEL);
         campoNome.setText("");
         campoLogin.setText("");
         campoSenha.setText("");
         usuarioAtual = null;
         setFormEnabled(true);
-        campoNome.requestFocus();
+        campoId.requestFocus();
         btnNovo.setEnabled(false);
         btnSalvar.setEnabled(true);
         btnEditar.setEnabled(false);
@@ -245,6 +253,8 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
             u.setSenha(senha);
 
             if (usuarioAtual == null) {
+                String idTexto = campoId.getText().trim();
+                if (!idTexto.isEmpty()) u.setId(Integer.parseInt(idTexto));
                 int idGerado = service.inserir(u);
                 u.setId(idGerado);
                 Mensagem.sucesso(this, "Usuário cadastrado com sucesso!");
@@ -252,7 +262,7 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
                 service.atualizar(u);
                 Mensagem.sucesso(this, "Usuário atualizado com sucesso!");
             }
-            preencherFormulario(u);
+            definirEstadoInicial();
 
         } catch (IllegalArgumentException ex) {
             Mensagem.erro(this, ex.getMessage());

@@ -24,22 +24,32 @@ public class ProdutoDAO {
 
     // Novo produto sempre começa com quantidade = 0 (regra de negócio)
     public int inserir(Produto p) {
-        String sql = "INSERT INTO produto (nome, valor, id_categoria) VALUES (?, ?, ?)";
+        boolean comId = p.getId() > 0;
+        String sql = comId
+            ? "INSERT INTO produto (id, nome, valor, id_categoria) VALUES (?, ?, ?, ?)"
+            : "INSERT INTO produto (nome, valor, id_categoria) VALUES (?, ?, ?)";
         try (Connection conn = ConnectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            ps.setString(1, p.getNome());
-            ps.setDouble(2, p.getValor());
-            ps.setInt(3, p.getIdCategoria());
+            if (comId) {
+                ps.setInt(1, p.getId());
+                ps.setString(2, p.getNome());
+                ps.setDouble(3, p.getValor());
+                ps.setInt(4, p.getIdCategoria());
+            } else {
+                ps.setString(1, p.getNome());
+                ps.setDouble(2, p.getValor());
+                ps.setInt(3, p.getIdCategoria());
+            }
             ps.executeUpdate();
 
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) return rs.getInt(1);
             }
+            return comId ? p.getId() : -1;
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao inserir produto: " + e.getMessage(), e);
         }
-        return -1;
     }
 
     // Atualiza apenas nome, valor e categoria — quantidade é exclusiva da movimentação

@@ -17,20 +17,28 @@ import java.util.List;
 public class CategoriaDAO {
 
     public int inserir(Categoria c) {
-        String sql = "INSERT INTO categoria (nome) VALUES (?)";
+        boolean comId = c.getId() > 0;
+        String sql = comId
+            ? "INSERT INTO categoria (id, nome) VALUES (?, ?)"
+            : "INSERT INTO categoria (nome) VALUES (?)";
         try (Connection conn = ConnectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            ps.setString(1, c.getNome());
+            if (comId) {
+                ps.setInt(1, c.getId());
+                ps.setString(2, c.getNome());
+            } else {
+                ps.setString(1, c.getNome());
+            }
             ps.executeUpdate();
 
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) return rs.getInt(1);
             }
+            return comId ? c.getId() : -1;
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao inserir categoria: " + e.getMessage(), e);
         }
-        return -1;
     }
 
     public void atualizar(Categoria c) {

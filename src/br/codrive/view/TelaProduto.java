@@ -48,7 +48,6 @@ public class TelaProduto extends JInternalFrame implements ModuloAcoes {
         setSize(720, 500);
         setMinimumSize(new Dimension(600, 440));
         construirInterface();
-        carregarCategorias();
         definirEstadoInicial();
     }
 
@@ -89,6 +88,7 @@ public class TelaProduto extends JInternalFrame implements ModuloAcoes {
         g.insets = new Insets(6, 6, 6, 6);
 
         campoId       = campoReadOnly(8);
+        Validador.aplicarFiltroInteiro(campoId);
         campoNome     = new JTextField(30);
         comboCategoria = new JComboBox<>();
         comboCategoria.setFont(AppTheme.FONTE_DADOS);
@@ -228,6 +228,8 @@ public class TelaProduto extends JInternalFrame implements ModuloAcoes {
 
     private void definirEstadoInicial() {
         campoId.setText("");
+        campoId.setEditable(false);
+        campoId.setBackground(AppTheme.COR_LINHA_PAR);
         campoNome.setText("");
         campoValor.setText("");
         campoQuantidade.setText("");
@@ -243,6 +245,8 @@ public class TelaProduto extends JInternalFrame implements ModuloAcoes {
     private void preencherFormulario(Produto p) {
         produtoAtual = p;
         campoId.setText(String.valueOf(p.getId()));
+        campoId.setEditable(false);
+        campoId.setBackground(AppTheme.COR_LINHA_PAR);
         campoNome.setText(p.getNome());
         campoValor.setText(String.format(Locale.US, "%.2f", p.getValor()));
         campoQuantidade.setText(String.valueOf(p.getQuantidade()));
@@ -279,8 +283,10 @@ public class TelaProduto extends JInternalFrame implements ModuloAcoes {
     public void acaoNovo() {
         definirEstadoInicial();
         carregarCategorias();
+        campoId.setEditable(true);
+        campoId.setBackground(AppTheme.COR_PAINEL);
         setFormEnabled(true);
-        campoNome.requestFocus();
+        campoId.requestFocus();
         btnNovo.setEnabled(false);
         btnSalvar.setEnabled(true);
     }
@@ -305,6 +311,8 @@ public class TelaProduto extends JInternalFrame implements ModuloAcoes {
             p.setIdCategoria(idCat);
 
             if (produtoAtual == null) {
+                String idTexto = campoId.getText().trim();
+                if (!idTexto.isEmpty()) p.setId(Integer.parseInt(idTexto));
                 int idGerado = produtoService.inserir(p);
                 p.setId(idGerado);
                 Mensagem.sucesso(this, "Produto cadastrado com sucesso!");
@@ -313,8 +321,7 @@ public class TelaProduto extends JInternalFrame implements ModuloAcoes {
                 Mensagem.sucesso(this, "Produto atualizado com sucesso!");
             }
 
-            Produto atualizado = produtoService.buscarPorId(p.getId());
-            if (atualizado != null) preencherFormulario(atualizado);
+            definirEstadoInicial();
 
         } catch (IllegalArgumentException ex) {
             Mensagem.erro(this, ex.getMessage());

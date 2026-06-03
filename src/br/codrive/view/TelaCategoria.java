@@ -12,6 +12,7 @@ import br.codrive.model.Categoria;
 import br.codrive.service.CategoriaService;
 import br.codrive.util.AppTheme;
 import br.codrive.util.Mensagem;
+import br.codrive.util.Validador;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -88,6 +89,7 @@ public class TelaCategoria extends JInternalFrame implements ModuloAcoes {
         campoId = new JTextField(8);
         campoId.setEditable(false);
         campoId.setBackground(AppTheme.COR_LINHA_PAR);
+        Validador.aplicarFiltroInteiro(campoId);
         g.gridx = 1; g.fill = GridBagConstraints.NONE;
         card.add(campoId, g);
 
@@ -187,6 +189,8 @@ public class TelaCategoria extends JInternalFrame implements ModuloAcoes {
 
     private void definirEstadoInicial() {
         campoId.setText("");
+        campoId.setEditable(false);
+        campoId.setBackground(AppTheme.COR_LINHA_PAR);
         campoNome.setText("");
         campoNome.setEnabled(false);
         categoriaAtual = null;
@@ -199,6 +203,8 @@ public class TelaCategoria extends JInternalFrame implements ModuloAcoes {
     private void preencherFormulario(Categoria c) {
         categoriaAtual = c;
         campoId.setText(String.valueOf(c.getId()));
+        campoId.setEditable(false);
+        campoId.setBackground(AppTheme.COR_LINHA_PAR);
         campoNome.setText(c.getNome());
         campoNome.setEnabled(false);
         btnNovo.setEnabled(true);
@@ -214,10 +220,12 @@ public class TelaCategoria extends JInternalFrame implements ModuloAcoes {
     @Override
     public void acaoNovo() {
         campoId.setText("");
+        campoId.setEditable(true);
+        campoId.setBackground(AppTheme.COR_PAINEL);
         campoNome.setText("");
         categoriaAtual = null;
         campoNome.setEnabled(true);
-        campoNome.requestFocus();
+        campoId.requestFocus();
         btnNovo.setEnabled(false);
         btnSalvar.setEnabled(true);
         btnEditar.setEnabled(false);
@@ -231,6 +239,8 @@ public class TelaCategoria extends JInternalFrame implements ModuloAcoes {
             c.setNome(campoNome.getText());
 
             if (categoriaAtual == null) {
+                String idTexto = campoId.getText().trim();
+                if (!idTexto.isEmpty()) c.setId(Integer.parseInt(idTexto));
                 int idGerado = service.inserir(c);
                 c.setId(idGerado);
                 Mensagem.sucesso(this, "Categoria cadastrada com sucesso!");
@@ -238,7 +248,7 @@ public class TelaCategoria extends JInternalFrame implements ModuloAcoes {
                 service.atualizar(c);
                 Mensagem.sucesso(this, "Categoria atualizada com sucesso!");
             }
-            preencherFormulario(c);
+            definirEstadoInicial();
 
         } catch (IllegalArgumentException ex) {
             Mensagem.erro(this, ex.getMessage());

@@ -33,6 +33,7 @@ public class TelaMenu extends JFrame {
         construirConteudo();
         construirStatusBar();
         registrarAtalhos();
+        SwingUtilities.invokeLater(this::abrirDashboard);
     }
 
     // -------------------------------------------------------------------------
@@ -255,6 +256,26 @@ public class TelaMenu extends JFrame {
     void abrirListagem()     { abrirInternalFrame(new TelaListagem()); }
     void abrirUsuario()      { abrirInternalFrame(new TelaUsuario()); }
     void abrirConfiguracoes(){ abrirInternalFrame(new TelaConfiguracoes()); }
+
+    void abrirDashboard() {
+        for (JInternalFrame f : desktop.getAllFrames()) {
+            if (f instanceof TelaDashboard && !f.isClosed()) {
+                try { f.setSelected(true); f.toFront(); }
+                catch (PropertyVetoException ex) { /* ignora */ }
+                return;
+            }
+        }
+        TelaDashboard dash = new TelaDashboard();
+        dash.setVisible(true);
+        desktop.add(dash);
+        Dimension d  = desktop.getSize();
+        Dimension fs = dash.getSize();
+        dash.setLocation(Math.max(0, (d.width - fs.width) / 2),
+                         Math.max(0, (d.height - fs.height) / 2));
+        try { dash.setSelected(true); }
+        catch (PropertyVetoException ex) { /* ignora */ }
+        atualizarStatusModulo(dash.getTitle());
+    }
 
     // -------------------------------------------------------------------------
     // Ações da toolbar — delegadas via ModuloAcoes para o módulo ativo

@@ -20,6 +20,10 @@ public class CategoriaService {
 
     public int inserir(Categoria c) {
         validarNome(c.getNome());
+        if (c.getId() > 0 && dao.buscarPorId(c.getId()) != null) {
+            throw new IllegalArgumentException(
+                "Código " + c.getId() + " já está em uso. Informe outro código ou deixe em branco.");
+        }
         if (dao.existePorNome(c.getNome().trim())) {
             throw new IllegalArgumentException(
                 "Já existe uma categoria com o nome \"" + c.getNome().trim() + "\".");

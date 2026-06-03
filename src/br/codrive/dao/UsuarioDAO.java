@@ -17,22 +17,32 @@ import java.util.List;
 public class UsuarioDAO {
 
     public int inserir(Usuario u) {
-        String sql = "INSERT INTO usuario (nome, login, senha) VALUES (?, ?, ?)";
+        boolean comId = u.getId() > 0;
+        String sql = comId
+            ? "INSERT INTO usuario (id, nome, login, senha) VALUES (?, ?, ?, ?)"
+            : "INSERT INTO usuario (nome, login, senha) VALUES (?, ?, ?)";
         try (Connection conn = ConnectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            ps.setString(1, u.getNome());
-            ps.setString(2, u.getLogin());
-            ps.setString(3, u.getSenha());
+            if (comId) {
+                ps.setInt(1, u.getId());
+                ps.setString(2, u.getNome());
+                ps.setString(3, u.getLogin());
+                ps.setString(4, u.getSenha());
+            } else {
+                ps.setString(1, u.getNome());
+                ps.setString(2, u.getLogin());
+                ps.setString(3, u.getSenha());
+            }
             ps.executeUpdate();
 
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) return rs.getInt(1);
             }
+            return comId ? u.getId() : -1;
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao inserir usuário: " + e.getMessage(), e);
         }
-        return -1;
     }
 
     public void atualizar(Usuario u) {

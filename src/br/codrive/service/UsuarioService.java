@@ -19,6 +19,10 @@ public class UsuarioService {
 
     public int inserir(Usuario u) {
         validar(u);
+        if (u.getId() > 0 && dao.buscarPorId(u.getId()) != null) {
+            throw new IllegalArgumentException(
+                "Código " + u.getId() + " já está em uso. Informe outro código ou deixe em branco.");
+        }
         if (dao.existePorLogin(u.getLogin().trim())) {
             throw new IllegalArgumentException(
                 "Já existe um usuário com o login \"" + u.getLogin().trim() + "\".");

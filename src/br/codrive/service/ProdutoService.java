@@ -20,6 +20,10 @@ public class ProdutoService {
 
     public int inserir(Produto p) {
         validar(p);
+        if (p.getId() > 0 && dao.buscarPorId(p.getId()) != null) {
+            throw new IllegalArgumentException(
+                "Código " + p.getId() + " já está em uso. Informe outro código ou deixe em branco.");
+        }
         if (dao.existePorNome(p.getNome().trim())) {
             throw new IllegalArgumentException(
                 "Já existe um produto com o nome \"" + p.getNome().trim() + "\".");
