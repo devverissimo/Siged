@@ -28,7 +28,8 @@ public class TelaProduto extends JInternalFrame implements ModuloAcoes {
     // Aba CADASTRO
     private JTextField           campoId, campoNome, campoValor, campoQuantidade;
     private JComboBox<Categoria> comboCategoria;
-    private JButton              btnNovo, btnSalvar, btnEditar, btnExcluir;
+    private JButton              btnSalvar, btnCancelar;
+    private JPanel               painelConteudo;
 
     // Aba PESQUISA
     private JComboBox<String>  comboTipoBusca;
@@ -36,6 +37,7 @@ public class TelaProduto extends JInternalFrame implements ModuloAcoes {
     private JTable             tabela;
     private DefaultTableModel  modeloTabela;
     private JTabbedPane        abas;
+    private JButton            btnEditarPesquisa, btnExcluirPesquisa;
 
     // Estado
     private Produto produtoAtual = null;
@@ -104,30 +106,25 @@ public class TelaProduto extends JInternalFrame implements ModuloAcoes {
 
         campoNome.addActionListener(e -> { if (btnSalvar.isEnabled()) acaoSalvar(); });
 
-        painel.add(card, BorderLayout.CENTER);
+        painelConteudo = new JPanel(new CardLayout());
+        painelConteudo.add(criarPainelOrientativo(), "ORIENTATIVO");
+        painelConteudo.add(card,                     "FORMULARIO");
+        painel.add(painelConteudo, BorderLayout.CENTER);
 
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         painelBotoes.setBackground(AppTheme.COR_FUNDO);
 
-        btnNovo    = new JButton(Mensagem.get("btn.novo"));
-        btnSalvar  = new JButton(Mensagem.get("btn.salvar"));
-        btnEditar  = new JButton(Mensagem.get("btn.editar"));
-        btnExcluir = new JButton(Mensagem.get("btn.excluir"));
+        btnSalvar   = new JButton(Mensagem.get("btn.salvar"));
+        btnCancelar = new JButton("CANCELAR");
 
-        AppTheme.estilizarBotaoToolbar(btnNovo);
         AppTheme.estilizarBotaoPrimario(btnSalvar);
-        AppTheme.estilizarBotaoToolbar(btnEditar);
-        AppTheme.estilizarBotaoToolbar(btnExcluir);
+        AppTheme.estilizarBotaoToolbar(btnCancelar);
 
-        btnNovo.addActionListener(e    -> acaoNovo());
-        btnSalvar.addActionListener(e  -> acaoSalvar());
-        btnEditar.addActionListener(e  -> acaoEditar());
-        btnExcluir.addActionListener(e -> acaoExcluir());
+        btnSalvar.addActionListener(e   -> acaoSalvar());
+        btnCancelar.addActionListener(e -> definirEstadoInicial());
 
-        painelBotoes.add(btnNovo);
         painelBotoes.add(btnSalvar);
-        painelBotoes.add(btnEditar);
-        painelBotoes.add(btnExcluir);
+        painelBotoes.add(btnCancelar);
 
         painel.add(painelBotoes, BorderLayout.SOUTH);
         return painel;
@@ -190,8 +187,22 @@ public class TelaProduto extends JInternalFrame implements ModuloAcoes {
         JScrollPane scroll = new JScrollPane(tabela);
         scroll.setBorder(BorderFactory.createLineBorder(AppTheme.COR_BORDA));
 
+        JPanel painelAcoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 4));
+        painelAcoes.setBackground(AppTheme.COR_FUNDO);
+        btnEditarPesquisa  = new JButton(Mensagem.get("btn.editar"));
+        btnExcluirPesquisa = new JButton(Mensagem.get("btn.excluir"));
+        AppTheme.estilizarBotaoPrimario(btnEditarPesquisa);
+        AppTheme.estilizarBotaoToolbar(btnExcluirPesquisa);
+        btnEditarPesquisa.setEnabled(false);
+        btnExcluirPesquisa.setEnabled(false);
+        btnEditarPesquisa.addActionListener(e  -> editarSelecionado());
+        btnExcluirPesquisa.addActionListener(e -> excluirSelecionado());
+        painelAcoes.add(btnEditarPesquisa);
+        painelAcoes.add(btnExcluirPesquisa);
+
         painel.add(painelBusca, BorderLayout.NORTH);
         painel.add(scroll,      BorderLayout.CENTER);
+        painel.add(painelAcoes, BorderLayout.SOUTH);
         return painel;
     }
 
@@ -236,13 +247,13 @@ public class TelaProduto extends JInternalFrame implements ModuloAcoes {
         comboCategoria.setSelectedIndex(0);
         produtoAtual = null;
         setFormEnabled(false);
-        btnNovo.setEnabled(true);
         btnSalvar.setEnabled(false);
-        btnEditar.setEnabled(false);
-        btnExcluir.setEnabled(false);
+        btnCancelar.setEnabled(false);
+        ((CardLayout) painelConteudo.getLayout()).show(painelConteudo, "ORIENTATIVO");
     }
 
     private void preencherFormulario(Produto p) {
+        ((CardLayout) painelConteudo.getLayout()).show(painelConteudo, "FORMULARIO");
         produtoAtual = p;
         campoId.setText(String.valueOf(p.getId()));
         campoId.setEditable(false);
@@ -252,10 +263,8 @@ public class TelaProduto extends JInternalFrame implements ModuloAcoes {
         campoQuantidade.setText(String.valueOf(p.getQuantidade()));
         selecionarCategoria(p.getIdCategoria());
         setFormEnabled(false);
-        btnNovo.setEnabled(true);
         btnSalvar.setEnabled(false);
-        btnEditar.setEnabled(true);
-        btnExcluir.setEnabled(true);
+        btnCancelar.setEnabled(true);
     }
 
     private void setFormEnabled(boolean enabled) {
@@ -287,8 +296,9 @@ public class TelaProduto extends JInternalFrame implements ModuloAcoes {
         campoId.setBackground(AppTheme.COR_PAINEL);
         setFormEnabled(true);
         campoId.requestFocus();
-        btnNovo.setEnabled(false);
         btnSalvar.setEnabled(true);
+        btnCancelar.setEnabled(true);
+        ((CardLayout) painelConteudo.getLayout()).show(painelConteudo, "FORMULARIO");
     }
 
     @Override
@@ -330,31 +340,8 @@ public class TelaProduto extends JInternalFrame implements ModuloAcoes {
         }
     }
 
-    @Override
-    public void acaoEditar() {
-        if (produtoAtual == null) return;
-        setFormEnabled(true);
-        campoNome.requestFocus();
-        btnNovo.setEnabled(false);
-        btnSalvar.setEnabled(true);
-        btnEditar.setEnabled(false);
-        btnExcluir.setEnabled(false);
-    }
-
-    @Override
-    public void acaoExcluir() {
-        if (produtoAtual == null) return;
-        if (!Mensagem.confirmar(this, Mensagem.get("confirm.excluir"))) return;
-        try {
-            produtoService.excluir(produtoAtual.getId());
-            Mensagem.sucesso(this, "Produto excluído com sucesso!");
-            definirEstadoInicial();
-        } catch (IllegalArgumentException ex) {
-            Mensagem.erro(this, ex.getMessage());
-        } catch (RuntimeException ex) {
-            Mensagem.erro(this, "Erro ao excluir produto:\n" + ex.getMessage());
-        }
-    }
+    @Override public void acaoEditar()  { editarSelecionado();  }
+    @Override public void acaoExcluir() { excluirSelecionado(); }
 
     @Override
     public void acaoPesquisar() {
@@ -405,11 +392,40 @@ public class TelaProduto extends JInternalFrame implements ModuloAcoes {
         try {
             Produto p = produtoService.buscarPorId(id);
             if (p != null) {
-                preencherFormulario(p);
-                abas.setSelectedIndex(0);
+                produtoAtual = p;
+                btnEditarPesquisa.setEnabled(true);
+                btnExcluirPesquisa.setEnabled(true);
             }
         } catch (RuntimeException ex) {
             Mensagem.erro(this, "Erro ao carregar produto:\n" + ex.getMessage());
+        }
+    }
+
+    private void editarSelecionado() {
+        if (produtoAtual == null) return;
+        preencherFormulario(produtoAtual);
+        setFormEnabled(true);
+        campoNome.requestFocus();
+        btnSalvar.setEnabled(true);
+        btnCancelar.setEnabled(true);
+        abas.setSelectedIndex(0);
+    }
+
+    private void excluirSelecionado() {
+        if (produtoAtual == null) return;
+        if (!Mensagem.confirmar(this, Mensagem.get("confirm.excluir"))) return;
+        try {
+            produtoService.excluir(produtoAtual.getId());
+            Mensagem.sucesso(this, "Produto excluído com sucesso!");
+            produtoAtual = null;
+            btnEditarPesquisa.setEnabled(false);
+            btnExcluirPesquisa.setEnabled(false);
+            executarBusca();
+            definirEstadoInicial();
+        } catch (IllegalArgumentException ex) {
+            Mensagem.erro(this, ex.getMessage());
+        } catch (RuntimeException ex) {
+            Mensagem.erro(this, "Erro ao excluir produto:\n" + ex.getMessage());
         }
     }
 
@@ -435,5 +451,15 @@ public class TelaProduto extends JInternalFrame implements ModuloAcoes {
         g.gridx = 1;
         g.fill = GridBagConstraints.HORIZONTAL; g.weightx = 1.0;
         card.add(campo, g);
+    }
+
+    private JPanel criarPainelOrientativo() {
+        JPanel p = new JPanel(new GridBagLayout());
+        p.setBackground(AppTheme.COR_FUNDO);
+        JLabel lbl = new JLabel("Clique em NOVO para iniciar um cadastro");
+        lbl.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        lbl.setForeground(new Color(0x9C, 0xA3, 0xAF));
+        p.add(lbl);
+        return p;
     }
 }

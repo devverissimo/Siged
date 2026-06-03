@@ -24,13 +24,15 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
     // Aba CADASTRO
     private JTextField     campoId, campoNome, campoLogin;
     private JPasswordField campoSenha;
-    private JButton        btnNovo, btnSalvar, btnEditar, btnExcluir;
+    private JButton        btnSalvar, btnCancelar;
+    private JPanel         painelConteudo;
 
     // Aba PESQUISA
     private JTextField        campoBusca;
     private JTable            tabela;
     private DefaultTableModel modeloTabela;
     private JTabbedPane       abas;
+    private JButton           btnEditarPesquisa, btnExcluirPesquisa;
 
     // Estado
     private Usuario usuarioAtual = null;
@@ -99,30 +101,25 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
         campoLogin.addActionListener(e -> campoSenha.requestFocus());
         campoSenha.addActionListener(e -> { if (btnSalvar.isEnabled()) acaoSalvar(); });
 
-        painel.add(card, BorderLayout.CENTER);
+        painelConteudo = new JPanel(new CardLayout());
+        painelConteudo.add(criarPainelOrientativo(), "ORIENTATIVO");
+        painelConteudo.add(card,                     "FORMULARIO");
+        painel.add(painelConteudo, BorderLayout.CENTER);
 
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         painelBotoes.setBackground(AppTheme.COR_FUNDO);
 
-        btnNovo    = new JButton(Mensagem.get("btn.novo"));
-        btnSalvar  = new JButton(Mensagem.get("btn.salvar"));
-        btnEditar  = new JButton(Mensagem.get("btn.editar"));
-        btnExcluir = new JButton(Mensagem.get("btn.excluir"));
+        btnSalvar   = new JButton(Mensagem.get("btn.salvar"));
+        btnCancelar = new JButton("CANCELAR");
 
-        AppTheme.estilizarBotaoToolbar(btnNovo);
         AppTheme.estilizarBotaoPrimario(btnSalvar);
-        AppTheme.estilizarBotaoToolbar(btnEditar);
-        AppTheme.estilizarBotaoToolbar(btnExcluir);
+        AppTheme.estilizarBotaoToolbar(btnCancelar);
 
-        btnNovo.addActionListener(e    -> acaoNovo());
-        btnSalvar.addActionListener(e  -> acaoSalvar());
-        btnEditar.addActionListener(e  -> acaoEditar());
-        btnExcluir.addActionListener(e -> acaoExcluir());
+        btnSalvar.addActionListener(e   -> acaoSalvar());
+        btnCancelar.addActionListener(e -> definirEstadoInicial());
 
-        painelBotoes.add(btnNovo);
         painelBotoes.add(btnSalvar);
-        painelBotoes.add(btnEditar);
-        painelBotoes.add(btnExcluir);
+        painelBotoes.add(btnCancelar);
 
         painel.add(painelBotoes, BorderLayout.SOUTH);
         return painel;
@@ -177,8 +174,22 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
         JScrollPane scroll = new JScrollPane(tabela);
         scroll.setBorder(BorderFactory.createLineBorder(AppTheme.COR_BORDA));
 
+        JPanel painelAcoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 4));
+        painelAcoes.setBackground(AppTheme.COR_FUNDO);
+        btnEditarPesquisa  = new JButton(Mensagem.get("btn.editar"));
+        btnExcluirPesquisa = new JButton(Mensagem.get("btn.excluir"));
+        AppTheme.estilizarBotaoPrimario(btnEditarPesquisa);
+        AppTheme.estilizarBotaoToolbar(btnExcluirPesquisa);
+        btnEditarPesquisa.setEnabled(false);
+        btnExcluirPesquisa.setEnabled(false);
+        btnEditarPesquisa.addActionListener(e  -> editarSelecionado());
+        btnExcluirPesquisa.addActionListener(e -> excluirSelecionado());
+        painelAcoes.add(btnEditarPesquisa);
+        painelAcoes.add(btnExcluirPesquisa);
+
         painel.add(painelBusca, BorderLayout.NORTH);
         painel.add(scroll,      BorderLayout.CENTER);
+        painel.add(painelAcoes, BorderLayout.SOUTH);
         return painel;
     }
 
@@ -195,13 +206,13 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
         campoSenha.setText("");
         usuarioAtual = null;
         setFormEnabled(false);
-        btnNovo.setEnabled(true);
         btnSalvar.setEnabled(false);
-        btnEditar.setEnabled(false);
-        btnExcluir.setEnabled(false);
+        btnCancelar.setEnabled(false);
+        ((CardLayout) painelConteudo.getLayout()).show(painelConteudo, "ORIENTATIVO");
     }
 
     private void preencherFormulario(Usuario u) {
+        ((CardLayout) painelConteudo.getLayout()).show(painelConteudo, "FORMULARIO");
         usuarioAtual = u;
         campoId.setText(String.valueOf(u.getId()));
         campoId.setEditable(false);
@@ -210,10 +221,8 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
         campoLogin.setText(u.getLogin());
         campoSenha.setText(u.getSenha());
         setFormEnabled(false);
-        btnNovo.setEnabled(true);
         btnSalvar.setEnabled(false);
-        btnEditar.setEnabled(true);
-        btnExcluir.setEnabled(true);
+        btnCancelar.setEnabled(true);
     }
 
     private void setFormEnabled(boolean enabled) {
@@ -228,6 +237,7 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
 
     @Override
     public void acaoNovo() {
+        ((CardLayout) painelConteudo.getLayout()).show(painelConteudo, "FORMULARIO");
         campoId.setText("");
         campoId.setEditable(true);
         campoId.setBackground(AppTheme.COR_PAINEL);
@@ -237,10 +247,8 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
         usuarioAtual = null;
         setFormEnabled(true);
         campoId.requestFocus();
-        btnNovo.setEnabled(false);
         btnSalvar.setEnabled(true);
-        btnEditar.setEnabled(false);
-        btnExcluir.setEnabled(false);
+        btnCancelar.setEnabled(true);
     }
 
     @Override
@@ -271,29 +279,8 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
         }
     }
 
-    @Override
-    public void acaoEditar() {
-        if (usuarioAtual == null) return;
-        setFormEnabled(true);
-        campoNome.requestFocus();
-        btnNovo.setEnabled(false);
-        btnSalvar.setEnabled(true);
-        btnEditar.setEnabled(false);
-        btnExcluir.setEnabled(false);
-    }
-
-    @Override
-    public void acaoExcluir() {
-        if (usuarioAtual == null) return;
-        if (!Mensagem.confirmar(this, Mensagem.get("confirm.excluir"))) return;
-        try {
-            service.excluir(usuarioAtual.getId());
-            Mensagem.sucesso(this, "Usuário excluído com sucesso!");
-            definirEstadoInicial();
-        } catch (RuntimeException ex) {
-            Mensagem.erro(this, "Erro ao excluir usuário:\n" + ex.getMessage());
-        }
-    }
+    @Override public void acaoEditar()  { editarSelecionado();  }
+    @Override public void acaoExcluir() { excluirSelecionado(); }
 
     @Override
     public void acaoPesquisar() {
@@ -312,11 +299,38 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
         try {
             Usuario u = service.buscarPorId(id);
             if (u != null) {
-                preencherFormulario(u);
-                abas.setSelectedIndex(0);
+                usuarioAtual = u;
+                btnEditarPesquisa.setEnabled(true);
+                btnExcluirPesquisa.setEnabled(true);
             }
         } catch (RuntimeException ex) {
             Mensagem.erro(this, "Erro ao carregar usuário:\n" + ex.getMessage());
+        }
+    }
+
+    private void editarSelecionado() {
+        if (usuarioAtual == null) return;
+        preencherFormulario(usuarioAtual);
+        setFormEnabled(true);
+        campoNome.requestFocus();
+        btnSalvar.setEnabled(true);
+        btnCancelar.setEnabled(true);
+        abas.setSelectedIndex(0);
+    }
+
+    private void excluirSelecionado() {
+        if (usuarioAtual == null) return;
+        if (!Mensagem.confirmar(this, Mensagem.get("confirm.excluir"))) return;
+        try {
+            service.excluir(usuarioAtual.getId());
+            Mensagem.sucesso(this, "Usuário excluído com sucesso!");
+            usuarioAtual = null;
+            btnEditarPesquisa.setEnabled(false);
+            btnExcluirPesquisa.setEnabled(false);
+            carregarTabela(campoBusca.getText());
+            definirEstadoInicial();
+        } catch (RuntimeException ex) {
+            Mensagem.erro(this, "Erro ao excluir usuário:\n" + ex.getMessage());
         }
     }
 
@@ -354,5 +368,15 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
         g.gridx = 1;
         g.fill = GridBagConstraints.HORIZONTAL; g.weightx = 1.0;
         card.add(campo, g);
+    }
+
+    private JPanel criarPainelOrientativo() {
+        JPanel p = new JPanel(new GridBagLayout());
+        p.setBackground(AppTheme.COR_FUNDO);
+        JLabel lbl = new JLabel("Clique em NOVO para iniciar um cadastro");
+        lbl.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        lbl.setForeground(new Color(0x9C, 0xA3, 0xAF));
+        p.add(lbl);
+        return p;
     }
 }

@@ -32,6 +32,7 @@ public class TelaMovimentacao extends JInternalFrame implements ModuloAcoes {
     private JTextField         campoQuantidade, campoData, campoObservacao;
     private JLabel             lblEstoqueAtual;
     private JButton            btnRegistrar;
+    private JPanel             painelFormConteudo;
 
     // Histórico
     private JTable            tabelaHistorico;
@@ -60,7 +61,11 @@ public class TelaMovimentacao extends JInternalFrame implements ModuloAcoes {
         raiz.setBackground(AppTheme.COR_FUNDO);
         raiz.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
-        raiz.add(construirPainelFormulario(), BorderLayout.NORTH);
+        JPanel formPanel = construirPainelFormulario();
+        painelFormConteudo = new JPanel(new CardLayout());
+        painelFormConteudo.add(criarPainelOrientativo(), "ORIENTATIVO");
+        painelFormConteudo.add(formPanel,                "FORMULARIO");
+        raiz.add(painelFormConteudo, BorderLayout.NORTH);
         raiz.add(construirPainelHistorico(),  BorderLayout.CENTER);
 
         setContentPane(raiz);
@@ -301,6 +306,7 @@ public class TelaMovimentacao extends JInternalFrame implements ModuloAcoes {
             limparFormulario();
             carregarProdutos();
             carregarHistorico();
+            ((CardLayout) painelFormConteudo.getLayout()).show(painelFormConteudo, "ORIENTATIVO");
         } catch (IllegalArgumentException ex) {
             Mensagem.erro(this, ex.getMessage());
         } catch (RuntimeException ex) {
@@ -320,7 +326,11 @@ public class TelaMovimentacao extends JInternalFrame implements ModuloAcoes {
     // Implementação de ModuloAcoes — delegação da toolbar de TelaMenu
     // -------------------------------------------------------------------------
 
-    @Override public void acaoNovo()      { limparFormulario(); campoQuantidade.requestFocus(); }
+    @Override public void acaoNovo() {
+        ((CardLayout) painelFormConteudo.getLayout()).show(painelFormConteudo, "FORMULARIO");
+        limparFormulario();
+        campoQuantidade.requestFocus();
+    }
     @Override public void acaoSalvar()    { acaoRegistrar(); }
     @Override public void acaoEditar()    { /* não aplicável neste módulo */ }
     @Override public void acaoExcluir()   { /* não aplicável neste módulo */ }
@@ -343,6 +353,16 @@ public class TelaMovimentacao extends JInternalFrame implements ModuloAcoes {
         rd.setFocusPainted(false);
         grupo.add(rd);
         return rd;
+    }
+
+    private JPanel criarPainelOrientativo() {
+        JPanel p = new JPanel(new GridBagLayout());
+        p.setBackground(AppTheme.COR_FUNDO);
+        JLabel lbl = new JLabel("Clique em NOVO para iniciar um cadastro");
+        lbl.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        lbl.setForeground(new Color(0x9C, 0xA3, 0xAF));
+        p.add(lbl);
+        return p;
     }
 
     @SuppressWarnings("unchecked")

@@ -16,6 +16,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyVetoException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TelaMenu extends JFrame {
 
@@ -25,6 +27,12 @@ public class TelaMenu extends JFrame {
 
     private JButton btnNovo, btnSalvar, btnEditar, btnExcluir, btnPesquisar;
 
+    private static final Color COR_SIDEBAR = new Color(0x1F, 0x29, 0x37);
+    private final List<JButton> itensNav   = new ArrayList<>();
+    private JButton itemAtivo;
+    private JButton navDashboard, navCadastros, navMovimentacao,
+                    navListagem, navConfiguracoes;
+
     public TelaMenu(Usuario usuario) {
         this.usuarioLogado = usuario;
         configurarJanela();
@@ -32,7 +40,6 @@ public class TelaMenu extends JFrame {
         construirToolbar();
         construirConteudo();
         construirStatusBar();
-        registrarAtalhos();
         SwingUtilities.invokeLater(this::abrirDashboard);
     }
 
@@ -56,9 +63,7 @@ public class TelaMenu extends JFrame {
         menuBar.setBorderPainted(false);
         menuBar.setOpaque(true);
 
-        JMenu mCadastros = menu(Mensagem.get("menu.cadastros"));
-        mCadastros.add(item(Mensagem.get("menu.cadastros.categoria"), e -> abrirCategoria()));
-        mCadastros.add(item(Mensagem.get("menu.cadastros.produto"),   e -> abrirProduto()));
+        JMenuItem mCadastros = item(Mensagem.get("menu.cadastros"), e -> abrirSeletorCadastro());
 
         JMenu mMov = menu(Mensagem.get("menu.movimentacao"));
         mMov.add(item(Mensagem.get("titulo.movimentacao"), e -> abrirMovimentacao()));
@@ -105,11 +110,11 @@ public class TelaMenu extends JFrame {
         toolbar.setBackground(new Color(0x2D, 0x3A, 0x4A));
         toolbar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, AppTheme.COR_BORDA));
 
-        btnNovo      = botaoToolbar(Mensagem.get("toolbar.novo"),      e -> acaoNovo());
-        btnSalvar    = botaoToolbar(Mensagem.get("toolbar.salvar"),    e -> acaoSalvar());
-        btnEditar    = botaoToolbar(Mensagem.get("toolbar.editar"),    e -> acaoEditar());
-        btnExcluir   = botaoToolbar(Mensagem.get("toolbar.excluir"),   e -> acaoExcluir());
-        btnPesquisar = botaoToolbar(Mensagem.get("toolbar.pesquisar"), e -> acaoPesquisar());
+        btnNovo      = botaoToolbar(Mensagem.get("btn.novo"),      e -> acaoNovo());
+        btnSalvar    = botaoToolbar(Mensagem.get("btn.salvar"),    e -> acaoSalvar());
+        btnEditar    = botaoToolbar(Mensagem.get("btn.editar"),    e -> acaoEditar());
+        btnExcluir   = botaoToolbar(Mensagem.get("btn.excluir"),   e -> acaoExcluir());
+        btnPesquisar = botaoToolbar(Mensagem.get("btn.pesquisar"), e -> acaoPesquisar());
 
         toolbar.add(btnNovo);
         toolbar.add(btnSalvar);
@@ -133,30 +138,95 @@ public class TelaMenu extends JFrame {
     private void construirConteudo() {
         JPanel sidebar = new JPanel();
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
-        sidebar.setBackground(AppTheme.COR_MENU);
-        sidebar.setPreferredSize(new Dimension(180, 0));
-        sidebar.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, AppTheme.COR_BORDA));
+        sidebar.setBackground(COR_SIDEBAR);
+        sidebar.setPreferredSize(new Dimension(200, 0));
+        sidebar.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(0x2D, 0x3A, 0x4A)));
 
-        JLabel lblModulos = new JLabel("  MÓDULOS");
-        lblModulos.setFont(AppTheme.FONTE_CAB_TABELA);
-        lblModulos.setForeground(new Color(0x9C, 0xA3, 0xAF));
-        lblModulos.setBorder(BorderFactory.createEmptyBorder(12, 8, 8, 8));
-        lblModulos.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
-        sidebar.add(lblModulos);
+        // Logo
+        JPanel painelLogo = new JPanel();
+        painelLogo.setLayout(new BoxLayout(painelLogo, BoxLayout.Y_AXIS));
+        painelLogo.setBackground(COR_SIDEBAR);
+        painelLogo.setBorder(BorderFactory.createEmptyBorder(16, 14, 12, 14));
+        painelLogo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 76));
 
-        JSeparator sepSidebar = new JSeparator();
-        sepSidebar.setForeground(new Color(0x4B, 0x55, 0x63));
-        sepSidebar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
-        sidebar.add(sepSidebar);
+        JLabel lblSiged = new JLabel("SIGED");
+        lblSiged.setFont(new Font("SansSerif", Font.BOLD, 18));
+        lblSiged.setForeground(AppTheme.COR_PRIMARIA);
+        lblSiged.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        sidebar.add(botaoSidebar(Mensagem.get("sidebar.categoria"),     e -> abrirCategoria()));
-        sidebar.add(botaoSidebar(Mensagem.get("sidebar.produto"),       e -> abrirProduto()));
-        sidebar.add(botaoSidebar(Mensagem.get("sidebar.movimentacao"),  e -> abrirMovimentacao()));
-        sidebar.add(botaoSidebar(Mensagem.get("sidebar.listagem"),      e -> abrirListagem()));
-        sidebar.add(botaoSidebar(Mensagem.get("sidebar.usuario"),       e -> abrirUsuario()));
-        sidebar.add(botaoSidebar(Mensagem.get("sidebar.configuracoes"), e -> abrirConfiguracoes()));
+        JLabel lblCodrive = new JLabel("CoDrive");
+        lblCodrive.setFont(new Font("SansSerif", Font.PLAIN, 11));
+        lblCodrive.setForeground(new Color(0xD9, 0x77, 0x06));
+        lblCodrive.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        painelLogo.add(lblSiged);
+        painelLogo.add(lblCodrive);
+        sidebar.add(painelLogo);
+
+        JSeparator sepLogo = new JSeparator();
+        sepLogo.setForeground(new Color(0x2D, 0x3A, 0x4A));
+        sepLogo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+        sidebar.add(sepLogo);
+        sidebar.add(Box.createVerticalStrut(6));
+
+        // Itens de navegação
+        navDashboard     = itemSidebar("Dashboard");
+        navCadastros     = itemSidebar("Cadastros");
+        navMovimentacao  = itemSidebar("Movimentação");
+        navListagem      = itemSidebar("Listagem");
+        navConfiguracoes = itemSidebar("Configurações");
+
+        navDashboard.addActionListener(e     -> { setItemAtivo(navDashboard);     abrirDashboard();        });
+        navCadastros.addActionListener(e     -> { setItemAtivo(navCadastros);     abrirSeletorCadastro();  });
+        navMovimentacao.addActionListener(e  -> { setItemAtivo(navMovimentacao);  abrirMovimentacao();     });
+        navListagem.addActionListener(e      -> { setItemAtivo(navListagem);      abrirListagem();         });
+        navConfiguracoes.addActionListener(e -> { setItemAtivo(navConfiguracoes); abrirConfiguracoes();    });
+
+        sidebar.add(navDashboard);
+        sidebar.add(Box.createVerticalStrut(4));
+        sidebar.add(labelSecao("CADASTROS"));
+        sidebar.add(navCadastros);
+        sidebar.add(Box.createVerticalStrut(4));
+        sidebar.add(labelSecao("OPERAÇÕES"));
+        sidebar.add(navMovimentacao);
+        sidebar.add(navListagem);
+        sidebar.add(Box.createVerticalStrut(4));
+        sidebar.add(labelSecao("SISTEMA"));
+        sidebar.add(navConfiguracoes);
         sidebar.add(Box.createVerticalGlue());
 
+        // Rodapé
+        JSeparator sepRodape = new JSeparator();
+        sepRodape.setForeground(new Color(0x2D, 0x3A, 0x4A));
+        sepRodape.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+        sidebar.add(sepRodape);
+
+        JLabel lblNomeUser = new JLabel("  " + usuarioLogado.getNome());
+        lblNomeUser.setFont(new Font("SansSerif", Font.PLAIN, 11));
+        lblNomeUser.setForeground(new Color(0x9C, 0xA3, 0xAF));
+        lblNomeUser.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
+        lblNomeUser.setBorder(BorderFactory.createEmptyBorder(6, 0, 2, 0));
+        sidebar.add(lblNomeUser);
+
+        JButton btnSair = new JButton("  SAIR");
+        btnSair.setBackground(new Color(0x7F, 0x1D, 0x1D));
+        btnSair.setForeground(AppTheme.COR_BRANCO);
+        btnSair.setFont(AppTheme.FONTE_BOLD);
+        btnSair.setFocusPainted(false);
+        btnSair.setBorderPainted(false);
+        btnSair.setOpaque(true);
+        btnSair.setHorizontalAlignment(SwingConstants.LEFT);
+        btnSair.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+        btnSair.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnSair.addMouseListener(new MouseAdapter() {
+            @Override public void mouseEntered(MouseEvent e) { btnSair.setBackground(new Color(0x99, 0x1B, 0x1B)); }
+            @Override public void mouseExited (MouseEvent e) { btnSair.setBackground(new Color(0x7F, 0x1D, 0x1D)); }
+        });
+        btnSair.addActionListener(e -> { dispose(); new TelaLogin().setVisible(true); });
+        sidebar.add(btnSair);
+        sidebar.add(Box.createVerticalStrut(8));
+
+        // Desktop
         desktop = new JDesktopPane();
         desktop.setBackground(AppTheme.COR_DESKTOP);
 
@@ -167,23 +237,42 @@ public class TelaMenu extends JFrame {
         getContentPane().add(conteudo, BorderLayout.CENTER);
     }
 
-    private JButton botaoSidebar(String texto, ActionListener al) {
-        JButton btn = new JButton("  " + texto);
-        btn.setBackground(AppTheme.COR_MENU);
+    private JButton itemSidebar(String texto) {
+        JButton btn = new JButton("   " + texto);
+        btn.setBackground(COR_SIDEBAR);
         btn.setForeground(AppTheme.COR_BRANCO);
         btn.setFont(AppTheme.FONTE_LABEL);
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
         btn.setOpaque(true);
         btn.setHorizontalAlignment(SwingConstants.LEFT);
-        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btn.addMouseListener(new MouseAdapter() {
-            @Override public void mouseEntered(MouseEvent e) { btn.setBackground(AppTheme.COR_PRIMARIA); }
-            @Override public void mouseExited (MouseEvent e) { btn.setBackground(AppTheme.COR_MENU);    }
+            @Override public void mouseEntered(MouseEvent e) {
+                if (btn != itemAtivo) btn.setBackground(new Color(0x37, 0x41, 0x51));
+            }
+            @Override public void mouseExited(MouseEvent e) {
+                if (btn != itemAtivo) btn.setBackground(COR_SIDEBAR);
+            }
         });
-        btn.addActionListener(al);
+        itensNav.add(btn);
         return btn;
+    }
+
+    private JLabel labelSecao(String texto) {
+        JLabel l = new JLabel("  " + texto);
+        l.setFont(new Font("SansSerif", Font.BOLD, 10));
+        l.setForeground(new Color(0x6B, 0x72, 0x80));
+        l.setBorder(BorderFactory.createEmptyBorder(8, 0, 2, 0));
+        l.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
+        return l;
+    }
+
+    private void setItemAtivo(JButton btn) {
+        for (JButton b : itensNav) b.setBackground(COR_SIDEBAR);
+        itemAtivo = btn;
+        if (btn != null) btn.setBackground(AppTheme.COR_PRIMARIA);
     }
 
     // -------------------------------------------------------------------------
@@ -222,34 +311,9 @@ public class TelaMenu extends JFrame {
     }
 
     // -------------------------------------------------------------------------
-    // Atalhos de teclado F2-F8
-    // -------------------------------------------------------------------------
-    private void registrarAtalhos() {
-        InputMap  im = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-        ActionMap am = getRootPane().getActionMap();
-
-        im.put(KeyStroke.getKeyStroke("F2"), "novo");
-        im.put(KeyStroke.getKeyStroke("F3"), "salvar");
-        im.put(KeyStroke.getKeyStroke("F4"), "editar");
-        im.put(KeyStroke.getKeyStroke("F8"), "excluir");
-        im.put(KeyStroke.getKeyStroke("F5"), "pesquisar");
-
-        am.put("novo",      acao(this::acaoNovo));
-        am.put("salvar",    acao(this::acaoSalvar));
-        am.put("editar",    acao(this::acaoEditar));
-        am.put("excluir",   acao(this::acaoExcluir));
-        am.put("pesquisar", acao(this::acaoPesquisar));
-    }
-
-    private Action acao(Runnable r) {
-        return new AbstractAction() {
-            public void actionPerformed(ActionEvent e) { r.run(); }
-        };
-    }
-
-    // -------------------------------------------------------------------------
     // Abertura de módulos
     // -------------------------------------------------------------------------
+    void abrirSeletorCadastro() { abrirInternalFrame(new TelaSeletorCadastro(this)); }
     void abrirCategoria()    { abrirInternalFrame(new TelaCategoria()); }
     void abrirProduto()      { abrirInternalFrame(new TelaProduto()); }
     void abrirMovimentacao() { abrirInternalFrame(new TelaMovimentacao()); }
@@ -258,6 +322,7 @@ public class TelaMenu extends JFrame {
     void abrirConfiguracoes(){ abrirInternalFrame(new TelaConfiguracoes()); }
 
     void abrirDashboard() {
+        setItemAtivo(navDashboard);
         for (JInternalFrame f : desktop.getAllFrames()) {
             if (f instanceof TelaDashboard && !f.isClosed()) {
                 try { f.setSelected(true); f.toFront(); }
@@ -268,10 +333,7 @@ public class TelaMenu extends JFrame {
         TelaDashboard dash = new TelaDashboard();
         dash.setVisible(true);
         desktop.add(dash);
-        Dimension d  = desktop.getSize();
-        Dimension fs = dash.getSize();
-        dash.setLocation(Math.max(0, (d.width - fs.width) / 2),
-                         Math.max(0, (d.height - fs.height) / 2));
+        try { dash.setMaximum(true); } catch (Exception ex) { /* ignora */ }
         try { dash.setSelected(true); }
         catch (PropertyVetoException ex) { /* ignora */ }
         atualizarStatusModulo(dash.getTitle());
@@ -324,6 +386,7 @@ public class TelaMenu extends JFrame {
 
         frame.setVisible(true);
         desktop.add(frame);
+        try { frame.setMaximum(true); } catch (Exception ex) { /* ignora */ }
         try { frame.setSelected(true); }
         catch (PropertyVetoException ex) { /* ignora */ }
         atualizarStatusModulo(frame.getTitle());

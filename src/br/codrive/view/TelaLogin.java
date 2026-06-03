@@ -33,7 +33,7 @@ public class TelaLogin extends JFrame {
     private void configurarJanela() {
         setTitle("SIGED v1.0 — Sistema de Gerenciamento de Estoque para Distribuidoras [CoDrive]");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(440, 370);
+        setSize(440, 400);
         setResizable(false);
         setLocationRelativeTo(null);
     }
@@ -118,6 +118,15 @@ public class TelaLogin extends JFrame {
         g.gridy = 6; g.fill = GridBagConstraints.HORIZONTAL; g.weightx = 1.0;
         g.insets = new Insets(4, 0, 0, 0);
         card.add(btnEntrar, g);
+
+        // --- Label acesso restrito ---
+        JLabel lblAcesso = new JLabel(
+            "Acesso restrito — contate o administrador do sistema",
+            SwingConstants.CENTER);
+        lblAcesso.setFont(new Font("SansSerif", Font.PLAIN, 11));
+        lblAcesso.setForeground(new Color(0x9C, 0xA3, 0xAF));
+        g.gridy = 7; g.insets = new Insets(10, 0, 0, 0);
+        card.add(lblAcesso, g);
 
         // --- Rodapé (fora do card) ---
         JLabel lblRodape = new JLabel("CMP1611 — PUC Goiás", SwingConstants.CENTER);
