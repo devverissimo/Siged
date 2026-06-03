@@ -24,7 +24,7 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
     // Aba CADASTRO
     private JTextField     campoId, campoNome, campoLogin;
     private JPasswordField campoSenha;
-    private JButton        btnSalvar, btnCancelar;
+    private JButton        btnNovo, btnSalvar, btnCancelar;
     private JPanel         painelConteudo;
 
     // Aba PESQUISA
@@ -62,6 +62,7 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
         JPanel barraAcoes = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 6));
         barraAcoes.setBackground(new Color(0xF3, 0xF4, 0xF6));
         barraAcoes.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, AppTheme.COR_BORDA));
+        barraAcoes.add(btnNovo);
         barraAcoes.add(btnSalvar);
         barraAcoes.add(btnCancelar);
         barraAcoes.add(btnEditarPesquisa);
@@ -75,6 +76,7 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
 
         abas.addChangeListener(e -> {
             boolean cadastro = abas.getSelectedIndex() == 0;
+            btnNovo.setVisible(cadastro);
             btnSalvar.setVisible(cadastro);
             btnCancelar.setVisible(cadastro);
             if (!cadastro) {
@@ -132,13 +134,16 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
         painelConteudo.add(card,                     "FORMULARIO");
         painel.add(painelConteudo, BorderLayout.CENTER);
 
+        btnNovo     = new JButton(Mensagem.get("btn.novo"));
         btnSalvar   = new JButton(Mensagem.get("btn.salvar"));
         btnCancelar = new JButton("CANCELAR");
 
+        AppTheme.estilizarBotaoToolbar(btnNovo);
         AppTheme.estilizarBotaoPrimario(btnSalvar);
         AppTheme.estilizarBotaoSecundario(btnCancelar);
 
-        btnSalvar.addActionListener(e   -> acaoSalvar());
+        btnNovo.addActionListener(e    -> acaoNovo());
+        btnSalvar.addActionListener(e  -> acaoSalvar());
         btnCancelar.addActionListener(e -> definirEstadoInicial());
 
         return painel;
@@ -220,6 +225,7 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
         campoSenha.setText("");
         usuarioAtual = null;
         setFormEnabled(false);
+        btnNovo.setEnabled(true);
         btnSalvar.setEnabled(false);
         btnCancelar.setEnabled(false);
         ((CardLayout) painelConteudo.getLayout()).show(painelConteudo, "ORIENTATIVO");
@@ -261,6 +267,7 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
         usuarioAtual = null;
         setFormEnabled(true);
         campoId.requestFocus();
+        btnNovo.setEnabled(false);
         btnSalvar.setEnabled(true);
         btnCancelar.setEnabled(true);
     }
@@ -333,6 +340,7 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
         preencherFormulario(usuarioAtual);
         setFormEnabled(true);
         campoNome.requestFocus();
+        btnNovo.setEnabled(false);
         btnSalvar.setEnabled(true);
         btnCancelar.setEnabled(true);
         abas.setSelectedIndex(0);

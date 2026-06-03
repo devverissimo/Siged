@@ -34,7 +34,6 @@ public class TelaMenu extends JFrame {
     public TelaMenu(Usuario usuario) {
         this.usuarioLogado = usuario;
         configurarJanela();
-        construirMenuBar();
         construirTopbar();
         construirConteudo();
         construirStatusBar();
@@ -50,54 +49,6 @@ public class TelaMenu extends JFrame {
         setSize(1200, 750);
         setMinimumSize(new Dimension(900, 600));
         setLocationRelativeTo(null);
-    }
-
-    // -------------------------------------------------------------------------
-    // JMenuBar escura
-    // -------------------------------------------------------------------------
-    private void construirMenuBar() {
-        JMenuBar menuBar = new JMenuBar();
-        menuBar.setBackground(AppTheme.COR_MENU);
-        menuBar.setBorderPainted(false);
-        menuBar.setOpaque(true);
-
-        JMenuItem mCadastros = item(Mensagem.get("menu.cadastros"), e -> abrirSeletorCadastro());
-
-        JMenu mMov = menu(Mensagem.get("menu.movimentacao"));
-        mMov.add(item(Mensagem.get("titulo.movimentacao"), e -> abrirMovimentacao()));
-
-        JMenu mList = menu(Mensagem.get("menu.listagem"));
-        mList.add(item(Mensagem.get("titulo.listagem"), e -> abrirListagem()));
-
-        JMenu mUsr = menu(Mensagem.get("menu.usuarios"));
-        mUsr.add(item(Mensagem.get("titulo.usuario"), e -> abrirUsuario()));
-
-        JMenu mConf = menu(Mensagem.get("menu.configuracoes"));
-        mConf.add(item(Mensagem.get("titulo.configuracoes"), e -> abrirConfiguracoes()));
-
-        menuBar.add(mCadastros);
-        menuBar.add(mMov);
-        menuBar.add(mList);
-        menuBar.add(mUsr);
-        menuBar.add(mConf);
-        setJMenuBar(menuBar);
-    }
-
-    private JMenu menu(String texto) {
-        JMenu m = new JMenu(texto);
-        m.setForeground(AppTheme.COR_BRANCO);
-        m.setFont(AppTheme.FONTE_BOLD);
-        m.setOpaque(false);
-        return m;
-    }
-
-    private JMenuItem item(String texto, ActionListener al) {
-        JMenuItem mi = new JMenuItem(texto);
-        mi.setBackground(AppTheme.COR_MENU);
-        mi.setForeground(AppTheme.COR_BRANCO);
-        mi.setFont(AppTheme.FONTE_LABEL);
-        mi.addActionListener(al);
-        return mi;
     }
 
     // -------------------------------------------------------------------------
@@ -168,7 +119,19 @@ public class TelaMenu extends JFrame {
             @Override public void focusGained(FocusEvent e) { campoBuscaTopbar.repaint(); }
             @Override public void focusLost (FocusEvent e)  { campoBuscaTopbar.repaint(); }
         });
+        JButton btnBuscar = new JButton("BUSCAR");
+        btnBuscar.setBackground(AppTheme.COR_PRIMARIA);
+        btnBuscar.setForeground(Color.WHITE);
+        btnBuscar.setFont(AppTheme.FONTE_BOLD);
+        btnBuscar.setFocusPainted(false);
+        btnBuscar.setBorderPainted(false);
+        btnBuscar.setOpaque(true);
+        btnBuscar.setPreferredSize(new Dimension(80, 30));
+        btnBuscar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnBuscar.addActionListener(e -> pesquisarNaTelaProduto(campoBuscaTopbar.getText().trim()));
+
         painelBusca.add(campoBuscaTopbar);
+        painelBusca.add(btnBuscar);
 
         // DIREITA — botão avatar redondo com popup
         JPanel painelDireita = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 7));
