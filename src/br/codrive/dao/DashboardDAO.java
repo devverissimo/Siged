@@ -138,6 +138,20 @@ public class DashboardDAO {
         return dados;
     }
 
+    public double calcularValorTotalEstoque() {
+        String sql = "SELECT SUM(quantidade * valor) FROM produto WHERE quantidade > 0";
+        try (Connection conn = ConnectionFactory.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) return rs.getDouble(1);
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao calcular valor total do estoque: " + e.getMessage(), e);
+        }
+        return 0.0;
+    }
+
     private int contar(String sql) {
         try (Connection conn = ConnectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);

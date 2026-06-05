@@ -86,6 +86,7 @@ public class TelaDashboard extends JInternalFrame {
         int totalProdutos   = 0;
         int totalCategorias = 0;
         int estoqueZerado   = 0;
+        double valorTotalEstoque     = 0.0;
         Movimentacao ultima = null;
         Map<Integer, int[]> dadosMensais        = new HashMap<>();
         List<Object[]>      estoqueCritico       = new ArrayList<>();
@@ -95,6 +96,7 @@ public class TelaDashboard extends JInternalFrame {
             totalProdutos        = dao.contarProdutos();
             totalCategorias      = dao.contarCategorias();
             estoqueZerado        = dao.contarEstoqueZerado();
+            valorTotalEstoque    = dao.calcularValorTotalEstoque();
             ultima               = dao.buscarUltimaMovimentacao();
             dadosMensais         = dao.buscarMovimentacoesMensais();
             estoqueCritico       = dao.buscarEstoqueCritico();
@@ -107,7 +109,8 @@ public class TelaDashboard extends JInternalFrame {
         painel.setBackground(AppTheme.COR_FUNDO);
         painel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        painel.add(construirCards(totalProdutos, totalCategorias, estoqueZerado, ultima),
+        painel.add(construirCards(totalProdutos, totalCategorias, estoqueZerado, ultima,
+                                  valorTotalEstoque),
                    BorderLayout.NORTH);
 
         JPanel painelMeio = new JPanel(new BorderLayout(8, 0));
@@ -122,14 +125,16 @@ public class TelaDashboard extends JInternalFrame {
     }
 
     private JPanel construirCards(int totalProdutos, int totalCategorias,
-                                   int estoqueZerado, Movimentacao ultima) {
-        JPanel grid = new JPanel(new GridLayout(2, 2, 8, 8));
+                                   int estoqueZerado, Movimentacao ultima,
+                                   double valorTotalEstoque) {
+        JPanel grid = new JPanel(new GridLayout(1, 5, 8, 0));
         grid.setBackground(AppTheme.COR_FUNDO);
 
         grid.add(criarCardNumero("PRODUTOS",       String.valueOf(totalProdutos),   "[PKG]"));
         grid.add(criarCardNumero("CATEGORIAS",     String.valueOf(totalCategorias), "[TAG]"));
         grid.add(criarCardNumero("ESTOQUE ZERADO", String.valueOf(estoqueZerado),   "[!!]"));
         grid.add(criarCardMovimentacao(ultima));
+        grid.add(criarCardValor("VALOR EM ESTOQUE", Formatador.formatarMoeda(valorTotalEstoque), "[R$]"));
 
         return grid;
     }
@@ -161,6 +166,32 @@ public class TelaDashboard extends JInternalFrame {
 
         card.add(topRow,    BorderLayout.NORTH);
         card.add(lblNumero, BorderLayout.CENTER);
+        return card;
+    }
+
+    private JPanel criarCardValor(String titulo, String valor, String icone) {
+        JPanel card = criarCard();
+
+        JPanel topRow = new JPanel(new BorderLayout());
+        topRow.setBackground(AppTheme.COR_PAINEL);
+
+        JLabel lblTitulo = new JLabel(titulo);
+        lblTitulo.setFont(new Font("SansSerif", Font.PLAIN, 11));
+        lblTitulo.setForeground(COR_LABEL_MUTED);
+
+        JLabel lblIcone = new JLabel(icone);
+        lblIcone.setFont(new Font("SansSerif", Font.BOLD, 11));
+        lblIcone.setForeground(AppTheme.COR_PRIMARIA);
+
+        topRow.add(lblTitulo, BorderLayout.WEST);
+        topRow.add(lblIcone,  BorderLayout.EAST);
+
+        JLabel lblValor = new JLabel(valor, SwingConstants.LEFT);
+        lblValor.setFont(new Font("SansSerif", Font.BOLD, 16));
+        lblValor.setForeground(AppTheme.COR_TEXTO);
+
+        card.add(topRow,   BorderLayout.NORTH);
+        card.add(lblValor, BorderLayout.CENTER);
         return card;
     }
 
@@ -533,7 +564,7 @@ public class TelaDashboard extends JInternalFrame {
         card.setLayout(new BorderLayout(0, 6));
         card.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(AppTheme.COR_BORDA, 1),
-            BorderFactory.createEmptyBorder(20, 20, 20, 20)
+            BorderFactory.createEmptyBorder(14, 14, 14, 14)
         ));
         return card;
     }
