@@ -9,6 +9,7 @@
 package br.codrive.view;
 
 import br.codrive.model.Usuario;
+import br.codrive.service.LogAcessoService;
 import br.codrive.util.AppTheme;
 import br.codrive.util.Mensagem;
 
@@ -21,15 +22,16 @@ import java.util.List;
 
 public class TelaMenu extends JFrame {
 
-    private final Usuario    usuarioLogado;
-    private JDesktopPane     desktop;
-    private JLabel           lblStatusModulo;
+    private final Usuario           usuarioLogado;
+    private final LogAcessoService  logService = new LogAcessoService();
+    private JDesktopPane            desktop;
+    private JLabel                  lblStatusModulo;
 
     private static final Color COR_SIDEBAR = new Color(0x1F, 0x29, 0x37);
     private final List<JButton> itensNav   = new ArrayList<>();
     private JButton itemAtivo;
     private JButton navDashboard, navCadastros, navMovimentacao,
-                    navListagem, navConfiguracoes;
+                    navListagem, navConfiguracoes, navLogAcesso;
     private JTextField campoBuscaTopbar;
 
     public TelaMenu(Usuario usuario) {
@@ -185,7 +187,7 @@ public class TelaMenu extends JFrame {
 
         JMenuItem itemSair = new JMenuItem("Sair");
         itemSair.setFont(AppTheme.FONTE_LABEL);
-        itemSair.addActionListener(e -> { dispose(); new TelaLogin().setVisible(true); });
+        itemSair.addActionListener(e -> realizarLogout());
 
         popup.add(itemPerfil);
         popup.addSeparator();
@@ -258,12 +260,14 @@ public class TelaMenu extends JFrame {
         navMovimentacao  = itemSidebar("Movimentação");
         navListagem      = itemSidebar("Listagem");
         navConfiguracoes = itemSidebar("Configurações");
+        navLogAcesso     = itemSidebar("Log de Acesso");
 
         navDashboard.addActionListener(e     -> { setItemAtivo(navDashboard);     abrirDashboard();        });
         navCadastros.addActionListener(e     -> { setItemAtivo(navCadastros);     abrirSeletorCadastro();  });
         navMovimentacao.addActionListener(e  -> { setItemAtivo(navMovimentacao);  abrirMovimentacao();     });
         navListagem.addActionListener(e      -> { setItemAtivo(navListagem);      abrirListagem();         });
         navConfiguracoes.addActionListener(e -> { setItemAtivo(navConfiguracoes); abrirConfiguracoes();    });
+        navLogAcesso.addActionListener(e     -> { setItemAtivo(navLogAcesso);     abrirLogAcesso();        });
 
         sidebar.add(navDashboard);
         sidebar.add(Box.createVerticalStrut(4));
@@ -276,6 +280,7 @@ public class TelaMenu extends JFrame {
         sidebar.add(Box.createVerticalStrut(4));
         sidebar.add(labelSecao("SISTEMA"));
         sidebar.add(navConfiguracoes);
+        sidebar.add(navLogAcesso);
         sidebar.add(Box.createVerticalGlue());
 
         // Rodapé
@@ -305,7 +310,7 @@ public class TelaMenu extends JFrame {
             @Override public void mouseEntered(MouseEvent e) { btnSair.setBackground(new Color(0x99, 0x1B, 0x1B)); }
             @Override public void mouseExited (MouseEvent e) { btnSair.setBackground(new Color(0x7F, 0x1D, 0x1D)); }
         });
-        btnSair.addActionListener(e -> { dispose(); new TelaLogin().setVisible(true); });
+        btnSair.addActionListener(e -> realizarLogout());
         sidebar.add(btnSair);
         sidebar.add(Box.createVerticalStrut(8));
 
@@ -403,6 +408,13 @@ public class TelaMenu extends JFrame {
     void abrirListagem()     { abrirInternalFrame(new TelaListagem(usuarioLogado.getNome())); }
     void abrirUsuario()      { abrirInternalFrame(new TelaUsuario()); }
     void abrirConfiguracoes(){ abrirInternalFrame(new TelaConfiguracoes()); }
+    void abrirLogAcesso()    { abrirInternalFrame(new TelaLogAcesso()); }
+
+    private void realizarLogout() {
+        try { logService.registrar(usuarioLogado, "LOGOUT"); } catch (Exception ignored) {}
+        dispose();
+        new TelaLogin().setVisible(true);
+    }
 
     void abrirDashboard() {
         setItemAtivo(navDashboard);

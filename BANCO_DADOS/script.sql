@@ -68,6 +68,22 @@ CREATE TABLE IF NOT EXISTS movimentacao (
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- ------------------------------------------------------------
+-- Tabela: log_acesso
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS log_acesso (
+    id          INT          NOT NULL AUTO_INCREMENT,
+    id_usuario  INT          NOT NULL,
+    data_hora   DATETIME     NOT NULL,
+    acao        VARCHAR(50)  NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT fk_log_usuario
+        FOREIGN KEY (id_usuario)
+        REFERENCES usuario (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- ============================================================
 -- Dados de Teste — Distribuidora de Eletronicos
 -- ============================================================
@@ -119,3 +135,18 @@ INSERT INTO movimentacao (tipo, quantidade, data, observacao, id_produto) VALUES
     ('SAIDA',   10, '2025-04-20', 'Venda — cliente TechShop Goiania',   6),
     ('SAIDA',    2, '2025-05-15', 'Venda — cliente ScreenWorld',        7),
     ('SAIDA',    5, '2025-06-01', 'Venda — cliente MobileMax',          8);
+
+-- Registros de log de acesso (usuario id=1: Administrador)
+INSERT INTO log_acesso (id_usuario, data_hora, acao) VALUES
+    (1, '2025-01-10 08:15:32', 'LOGIN'),
+    (1, '2025-01-10 17:42:11', 'LOGOUT'),
+    (1, '2025-02-01 09:05:00', 'LOGIN'),
+    (1, '2025-02-01 18:30:45', 'LOGOUT'),
+    (1, '2025-03-20 08:22:07', 'LOGIN'),
+    (1, '2025-03-20 12:48:33', 'LOGOUT'),
+    (1, '2025-04-20 07:55:19', 'LOGIN'),
+    (1, '2025-04-20 19:10:02', 'LOGOUT'),
+    (1, '2025-05-15 08:01:44', 'LOGIN'),
+    (1, '2025-05-15 17:59:58', 'LOGOUT'),
+    (1, '2025-06-01 07:48:33', 'LOGIN'),
+    (1, '2025-06-01 18:22:59', 'LOGOUT');

@@ -9,6 +9,7 @@
 package br.codrive.view;
 
 import br.codrive.model.Usuario;
+import br.codrive.service.LogAcessoService;
 import br.codrive.service.UsuarioService;
 import br.codrive.util.AppTheme;
 import br.codrive.util.Mensagem;
@@ -22,7 +23,8 @@ public class TelaLogin extends JFrame {
     private JPasswordField campoSenha;
     private JButton        btnEntrar;
 
-    private final UsuarioService service = new UsuarioService();
+    private final UsuarioService    service        = new UsuarioService();
+    private final LogAcessoService  logService     = new LogAcessoService();
 
     public TelaLogin() {
         configurarJanela();
@@ -161,6 +163,7 @@ public class TelaLogin extends JFrame {
                 campoSenha.setText("");
                 campoLogin.requestFocus();
             } else {
+                try { logService.registrar(usuario, "LOGIN"); } catch (Exception ignored) {}
                 new TelaMenu(usuario).setVisible(true);
                 dispose();
             }
