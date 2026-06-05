@@ -16,23 +16,31 @@ import br.codrive.util.Formatador;
 import br.codrive.util.Mensagem;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ItemEvent;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class TelaListagem extends JInternalFrame implements ModuloAcoes {
 
-    private JComboBox<String>  comboOrdenacao;
-    private JLabel             lblTotal;
-    private JTable             tabela;
-    private DefaultTableModel  modeloTabela;
-    private JTextField         campoDe;
-    private JTextField         campoAte;
+    private JComboBox<String>      comboOrdenacao;
+    private JLabel                 lblTotal;
+    private JTable                 tabela;
+    private DefaultTableModel      modeloTabela;
+    private JTextField             campoDe;
+    private JTextField             campoAte;
+    private List<Movimentacao>     listaAtual = new ArrayList<>();
 
-    private final MovimentacaoService service = new MovimentacaoService();
+    private final String               nomeUsuario;
+    private final MovimentacaoService  service = new MovimentacaoService();
 
     private static final String[] CRITERIOS = {
         MovimentacaoDAO.ORDEM_DATA_DESC,
@@ -41,8 +49,9 @@ public class TelaListagem extends JInternalFrame implements ModuloAcoes {
         MovimentacaoDAO.ORDEM_TIPO
     };
 
-    public TelaListagem() {
+    public TelaListagem(String nomeUsuario) {
         super(Mensagem.get("titulo.listagem"), true, true, true, true);
+        this.nomeUsuario = nomeUsuario != null ? nomeUsuario : "Sistema";
         setSize(820, 560);
         setMinimumSize(new Dimension(660, 420));
         construirInterface();
@@ -108,8 +117,13 @@ public class TelaListagem extends JInternalFrame implements ModuloAcoes {
         AppTheme.estilizarBotaoSecundario(btnAtualizar);
         btnAtualizar.addActionListener(e -> carregarListagem());
 
+        JButton btnExportar = new JButton("EXPORTAR .TXT");
+        AppTheme.estilizarBotaoSecundario(btnExportar);
+        btnExportar.addActionListener(e -> exportarRelatorio());
+
         direita.add(lblTotal);
         direita.add(btnAtualizar);
+        direita.add(btnExportar);
 
         painel.add(esquerda, BorderLayout.WEST);
         painel.add(direita,  BorderLayout.EAST);
@@ -199,6 +213,7 @@ public class TelaListagem extends JInternalFrame implements ModuloAcoes {
         try {
             String criterio = CRITERIOS[comboOrdenacao.getSelectedIndex()];
             List<Movimentacao> lista = service.listarOrdenado(criterio);
+            listaAtual = lista;
             for (Movimentacao m : lista) {
                 String tipo = "SAIDA".equals(m.getTipo())
                     ? Mensagem.get("tipo.saida")
@@ -245,6 +260,7 @@ public class TelaListagem extends JInternalFrame implements ModuloAcoes {
                 java.sql.Date.valueOf(dataDe),
                 java.sql.Date.valueOf(dataAte)
             );
+            listaAtual = lista;
             for (Movimentacao m : lista) {
                 String tipo = "SAIDA".equals(m.getTipo())
                     ? Mensagem.get("tipo.saida")
@@ -261,6 +277,76 @@ public class TelaListagem extends JInternalFrame implements ModuloAcoes {
         } catch (RuntimeException ex) {
             Mensagem.erro(this, "Erro ao filtrar listagem:\n" + ex.getMessage());
         }
+    }
+
+    private void exportarRelatorio() {
+        if (listaAtual.isEmpty()) {
+            Mensagem.erro(this, "Não há registros para exportar.");
+            return;
+        }
+
+        String dataHoje = LocalDate.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+        String nomeArquivo = "relatorio_movimentacoes_" + dataHoje + ".txt";
+
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Salvar relatório");
+        chooser.setSelectedFile(new File(nomeArquivo));
+        chooser.setFileFilter(new FileNameExtensionFilter("Arquivo de texto (*.txt)", "txt"));
+
+        if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
+
+        File arquivo = chooser.getSelectedFile();
+        if (!arquivo.getName().toLowerCase().endsWith(".txt")) {
+            arquivo = new File(arquivo.getAbsolutePath() + ".txt");
+        }
+
+        String dataHoraGeracao = LocalDateTime.now()
+            .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+
+        String sep1 = "=".repeat(70);
+        String sep2 = "-".repeat(70);
+        String fmt  = "%-12s%-28s%-10s%-6s%s%n";
+
+        try (PrintWriter pw = new PrintWriter(
+                new OutputStreamWriter(new FileOutputStream(arquivo), StandardCharsets.UTF_8))) {
+
+            pw.println(sep1);
+            pw.println("SIGED - CoDrive | Relatório de Movimentações");
+            pw.println("Gerado em: " + dataHoraGeracao);
+            pw.println("Usuário: " + nomeUsuario);
+            pw.println(sep1);
+            pw.printf(fmt, "DATA", "PRODUTO", "TIPO", "QTD", "RESPONSÁVEL");
+            pw.println(sep2);
+
+            for (Movimentacao m : listaAtual) {
+                String tipo    = "SAIDA".equals(m.getTipo()) ? "SAÍDA" : "ENTRADA";
+                String produto = m.getNomeProduto() != null ? m.getNomeProduto() : "-";
+                pw.printf(fmt,
+                    Formatador.formatarData(m.getData()),
+                    truncar(produto, 27),
+                    tipo,
+                    String.valueOf(m.getQuantidade()),
+                    nomeUsuario);
+            }
+
+            pw.println(sep2);
+            pw.println("Total de registros: " + listaAtual.size());
+            pw.println(sep1);
+
+        } catch (IOException ex) {
+            Mensagem.erro(this, "Erro ao salvar o arquivo:\n" + ex.getMessage());
+            return;
+        }
+
+        JOptionPane.showMessageDialog(this,
+            "Relatório exportado com sucesso!\n" + arquivo.getAbsolutePath(),
+            "Exportação concluída",
+            JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private String truncar(String texto, int limite) {
+        if (texto == null) return "";
+        return texto.length() <= limite ? texto : texto.substring(0, limite - 2) + "..";
     }
 
     private void limparFiltro() {

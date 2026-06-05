@@ -400,7 +400,7 @@ public class TelaMenu extends JFrame {
     void abrirCategoria()    { abrirInternalFrame(new TelaCategoria()); }
     void abrirProduto()      { abrirInternalFrame(new TelaProduto()); }
     void abrirMovimentacao() { abrirInternalFrame(new TelaMovimentacao()); }
-    void abrirListagem()     { abrirInternalFrame(new TelaListagem()); }
+    void abrirListagem()     { abrirInternalFrame(new TelaListagem(usuarioLogado.getNome())); }
     void abrirUsuario()      { abrirInternalFrame(new TelaUsuario()); }
     void abrirConfiguracoes(){ abrirInternalFrame(new TelaConfiguracoes()); }
 
