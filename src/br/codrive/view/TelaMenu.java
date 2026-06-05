@@ -283,6 +283,8 @@ public class TelaMenu extends JFrame {
         sidebar.add(navLogAcesso);
         sidebar.add(Box.createVerticalGlue());
 
+        aplicarPermissoesInterface();
+
         // Rodapé
         JSeparator sepRodape = new JSeparator();
         sepRodape.setForeground(new Color(0x2D, 0x3A, 0x4A));
@@ -399,16 +401,57 @@ public class TelaMenu extends JFrame {
     }
 
     // -------------------------------------------------------------------------
+    // Controle de permissões
+    // -------------------------------------------------------------------------
+
+    private boolean isOperador() {
+        return "OPERADOR".equalsIgnoreCase(usuarioLogado.getPerfil());
+    }
+
+    private void aplicarPermissoesInterface() {
+        if (isOperador()) {
+            navCadastros.setVisible(false);
+            navLogAcesso.setVisible(false);
+        }
+    }
+
+    private boolean verificarAcessoAdmin() {
+        if (isOperador()) {
+            JOptionPane.showMessageDialog(this,
+                "Acesso negado. Esta funcionalidade é restrita ao perfil ADMIN.",
+                "Permissão insuficiente",
+                JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        return true;
+    }
+
+    // -------------------------------------------------------------------------
     // Abertura de módulos
     // -------------------------------------------------------------------------
-    void abrirSeletorCadastro() { abrirInternalFrame(new TelaSeletorCadastro(this)); }
-    void abrirCategoria()    { abrirInternalFrame(new TelaCategoria()); }
-    void abrirProduto()      { abrirInternalFrame(new TelaProduto()); }
-    void abrirMovimentacao() { abrirInternalFrame(new TelaMovimentacao()); }
+    void abrirSeletorCadastro() {
+        if (!verificarAcessoAdmin()) return;
+        abrirInternalFrame(new TelaSeletorCadastro(this));
+    }
+    void abrirCategoria() {
+        if (!verificarAcessoAdmin()) return;
+        abrirInternalFrame(new TelaCategoria());
+    }
+    void abrirProduto() {
+        if (!verificarAcessoAdmin()) return;
+        abrirInternalFrame(new TelaProduto());
+    }
+    void abrirMovimentacao() { abrirInternalFrame(new TelaMovimentacao(usuarioLogado.getId())); }
     void abrirListagem()     { abrirInternalFrame(new TelaListagem(usuarioLogado.getNome())); }
-    void abrirUsuario()      { abrirInternalFrame(new TelaUsuario()); }
+    void abrirUsuario() {
+        if (!verificarAcessoAdmin()) return;
+        abrirInternalFrame(new TelaUsuario());
+    }
     void abrirConfiguracoes(){ abrirInternalFrame(new TelaConfiguracoes()); }
-    void abrirLogAcesso()    { abrirInternalFrame(new TelaLogAcesso()); }
+    void abrirLogAcesso() {
+        if (!verificarAcessoAdmin()) return;
+        abrirInternalFrame(new TelaLogAcesso());
+    }
 
     private void realizarLogout() {
         try { logService.registrar(usuarioLogado, "LOGOUT"); } catch (Exception ignored) {}

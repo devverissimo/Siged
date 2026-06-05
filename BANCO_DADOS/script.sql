@@ -61,11 +61,17 @@ CREATE TABLE IF NOT EXISTS movimentacao (
     data       DATE                     NOT NULL,
     observacao VARCHAR(255)             NULL,
     id_produto INT                      NOT NULL,
+    id_usuario INT                      NULL,
     PRIMARY KEY (id),
     CONSTRAINT fk_movimentacao_produto
         FOREIGN KEY (id_produto)
         REFERENCES produto (id)
         ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_movimentacao_usuario
+        FOREIGN KEY (id_usuario)
+        REFERENCES usuario (id)
+        ON DELETE SET NULL
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -123,23 +129,26 @@ INSERT INTO produto (nome, valor, quantidade, id_categoria) VALUES
 --   Produto 3: +40 -10 = 30  | Produto 4: +15 -3  = 12
 --   Produto 5: +60 -10 = 50  | Produto 6: +50 -10 = 40
 --   Produto 7: +10 -2  =  8  | Produto 8: +30 -5  = 25
-INSERT INTO movimentacao (tipo, quantidade, data, observacao, id_produto) VALUES
-    ('ENTRADA', 20, '2025-01-10', 'Compra inicial — lote 01',           1),
-    ('ENTRADA', 25, '2025-01-10', 'Compra inicial — lote 01',           2),
-    ('ENTRADA', 40, '2025-01-15', 'Compra inicial — lote 01',           3),
-    ('ENTRADA', 15, '2025-01-15', 'Compra inicial — lote 01',           4),
-    ('ENTRADA', 60, '2025-02-01', 'Compra de reposicao',                5),
-    ('ENTRADA', 50, '2025-02-01', 'Compra de reposicao',                6),
-    ('ENTRADA', 10, '2025-02-10', 'Compra inicial — lote 01',           7),
-    ('ENTRADA', 30, '2025-02-15', 'Compra inicial — lote 01',           8),
-    ('SAIDA',    5, '2025-02-15', 'Venda — cliente TechShop Goiania',   1),
-    ('SAIDA',    5, '2025-03-20', 'Venda — cliente InfoStore',          2),
-    ('SAIDA',   10, '2025-02-28', 'Venda — cliente MobileMax',          3),
-    ('SAIDA',    3, '2025-04-10', 'Venda — cliente Premium Distribui',  4),
-    ('SAIDA',   10, '2025-03-05', 'Venda — cliente DataParts',          5),
-    ('SAIDA',   10, '2025-04-20', 'Venda — cliente TechShop Goiania',   6),
-    ('SAIDA',    2, '2025-05-15', 'Venda — cliente ScreenWorld',        7),
-    ('SAIDA',    5, '2025-06-01', 'Venda — cliente MobileMax',          8);
+INSERT INTO movimentacao (tipo, quantidade, data, observacao, id_produto, id_usuario) VALUES
+    ('ENTRADA', 20, '2025-01-10', 'Compra inicial — lote 01',           1, 1),
+    ('ENTRADA', 25, '2025-01-10', 'Compra inicial — lote 01',           2, 1),
+    ('ENTRADA', 40, '2025-01-15', 'Compra inicial — lote 01',           3, 1),
+    ('ENTRADA', 15, '2025-01-15', 'Compra inicial — lote 01',           4, 1),
+    ('ENTRADA', 60, '2025-02-01', 'Compra de reposicao',                5, 1),
+    ('ENTRADA', 50, '2025-02-01', 'Compra de reposicao',                6, 1),
+    ('ENTRADA', 10, '2025-02-10', 'Compra inicial — lote 01',           7, 1),
+    ('ENTRADA', 30, '2025-02-15', 'Compra inicial — lote 01',           8, 1),
+    ('SAIDA',    5, '2025-02-15', 'Venda — cliente TechShop Goiania',   1, 1),
+    ('SAIDA',    5, '2025-03-20', 'Venda — cliente InfoStore',          2, 1),
+    ('SAIDA',   10, '2025-02-28', 'Venda — cliente MobileMax',          3, 1),
+    ('SAIDA',    3, '2025-04-10', 'Venda — cliente Premium Distribui',  4, 1),
+    ('SAIDA',   10, '2025-03-05', 'Venda — cliente DataParts',          5, 1),
+    ('SAIDA',   10, '2025-04-20', 'Venda — cliente TechShop Goiania',   6, 1),
+    ('SAIDA',    2, '2025-05-15', 'Venda — cliente ScreenWorld',        7, 1),
+    ('SAIDA',    5, '2025-06-01', 'Venda — cliente MobileMax',          8, 1);
+
+-- Atribuir responsavel nas movimentacoes de bancos ja populados
+UPDATE movimentacao SET id_usuario = 1 WHERE id_usuario IS NULL;
 
 -- Registros de log de acesso (usuario id=1: Administrador)
 INSERT INTO log_acesso (id_usuario, data_hora, acao) VALUES

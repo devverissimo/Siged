@@ -319,14 +319,15 @@ public class TelaListagem extends JInternalFrame implements ModuloAcoes {
             pw.println(sep2);
 
             for (Movimentacao m : listaAtual) {
-                String tipo    = "SAIDA".equals(m.getTipo()) ? "SAÍDA" : "ENTRADA";
-                String produto = m.getNomeProduto() != null ? m.getNomeProduto() : "-";
+                String tipo         = "SAIDA".equals(m.getTipo()) ? "SAÍDA" : "ENTRADA";
+                String produto      = m.getNomeProduto() != null ? m.getNomeProduto() : "-";
+                String responsavel  = m.getNomeResponsavel() != null ? m.getNomeResponsavel() : nomeUsuario;
                 pw.printf(fmt,
                     Formatador.formatarData(m.getData()),
                     truncar(produto, 27),
                     tipo,
                     String.valueOf(m.getQuantidade()),
-                    nomeUsuario);
+                    responsavel);
             }
 
             pw.println(sep2);

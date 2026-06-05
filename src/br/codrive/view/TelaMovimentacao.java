@@ -45,8 +45,11 @@ public class TelaMovimentacao extends JInternalFrame implements ModuloAcoes {
 
     private static final Produto SELECIONE = new Produto(0, "-- Selecione um produto --", 0, 0, 0);
 
-    public TelaMovimentacao() {
+    private final int idUsuarioLogado;
+
+    public TelaMovimentacao(int idUsuarioLogado) {
         super(Mensagem.get("titulo.movimentacao"), true, true, true, true);
+        this.idUsuarioLogado = idUsuarioLogado;
         setSize(780, 600);
         setMinimumSize(new Dimension(640, 500));
         construirInterface();
@@ -205,6 +208,7 @@ public class TelaMovimentacao extends JInternalFrame implements ModuloAcoes {
             Mensagem.get("tabela.produto"),
             Mensagem.get("tabela.tipo"),
             Mensagem.get("tabela.quantidade"),
+            "RESPONSÁVEL",
             Mensagem.get("tabela.observacao")
         }, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
@@ -221,6 +225,8 @@ public class TelaMovimentacao extends JInternalFrame implements ModuloAcoes {
         tabelaHistorico.getColumnModel().getColumn(2).setMaxWidth(80);
         tabelaHistorico.getColumnModel().getColumn(2).setPreferredWidth(70);
         tabelaHistorico.getColumnModel().getColumn(3).setMaxWidth(60);
+        tabelaHistorico.getColumnModel().getColumn(4).setPreferredWidth(120);
+        tabelaHistorico.getColumnModel().getColumn(4).setMaxWidth(150);
 
         JScrollPane scroll = new JScrollPane(tabelaHistorico);
         scroll.setBorder(BorderFactory.createLineBorder(AppTheme.COR_BORDA));
@@ -267,6 +273,7 @@ public class TelaMovimentacao extends JInternalFrame implements ModuloAcoes {
                     m.getNomeProduto(),
                     tipo,
                     m.getQuantidade(),
+                    m.getNomeResponsavel() != null ? m.getNomeResponsavel() : "-",
                     m.getObservacao() != null ? m.getObservacao() : ""
                 });
             }
@@ -318,6 +325,7 @@ public class TelaMovimentacao extends JInternalFrame implements ModuloAcoes {
 
         Movimentacao m = new Movimentacao(0, tipo, quantidade, data,
                                           obs.isEmpty() ? null : obs, p.getId());
+        m.setIdUsuario(idUsuarioLogado);
         try {
             movService.registrar(m);
             Mensagem.sucesso(this,

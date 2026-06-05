@@ -19,8 +19,11 @@ public class Movimentacao {
     private String    observacao;
     private int       idProduto;
 
-    // Preenchido por JOIN no DAO — não persiste no banco
+    private int    idUsuario;
+
+    // Preenchidos por JOIN no DAO — não persistem no banco
     private String nomeProduto;
+    private String nomeResponsavel;
 
     public Movimentacao() {}
 
@@ -52,6 +55,12 @@ public class Movimentacao {
     public int  getIdProduto()                  { return idProduto; }
     public void setIdProduto(int idProduto)     { this.idProduto = idProduto; }
 
-    public String getNomeProduto()                      { return nomeProduto; }
-    public void   setNomeProduto(String nomeProduto)    { this.nomeProduto = nomeProduto; }
+    public int  getIdUsuario()                  { return idUsuario; }
+    public void setIdUsuario(int idUsuario)     { this.idUsuario = idUsuario; }
+
+    public String getNomeProduto()                          { return nomeProduto; }
+    public void   setNomeProduto(String nomeProduto)        { this.nomeProduto = nomeProduto; }
+
+    public String getNomeResponsavel()                          { return nomeResponsavel; }
+    public void   setNomeResponsavel(String nomeResponsavel)    { this.nomeResponsavel = nomeResponsavel; }
 }

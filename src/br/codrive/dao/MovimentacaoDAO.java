@@ -25,9 +25,12 @@ public class MovimentacaoDAO {
 
     private static final String SELECT_BASE =
         "SELECT m.id, m.tipo, m.quantidade, m.data, m.observacao, " +
-        "       m.id_produto, p.nome AS nome_produto " +
+        "       m.id_produto, m.id_usuario, " +
+        "       p.nome AS nome_produto, " +
+        "       u.nome AS nome_responsavel " +
         "FROM movimentacao m " +
-        "JOIN produto p ON p.id = m.id_produto ";
+        "JOIN produto p ON p.id = m.id_produto " +
+        "LEFT JOIN usuario u ON u.id = m.id_usuario ";
 
     /**
      * Registra uma movimentação e atualiza o estoque do produto
@@ -35,8 +38,8 @@ public class MovimentacaoDAO {
      */
     public void registrar(Movimentacao m) {
         String sqlInsert = "INSERT INTO movimentacao " +
-                           "(tipo, quantidade, data, observacao, id_produto) " +
-                           "VALUES (?, ?, ?, ?, ?)";
+                           "(tipo, quantidade, data, observacao, id_produto, id_usuario) " +
+                           "VALUES (?, ?, ?, ?, ?, ?)";
 
         String sqlUpdate = "ENTRADA".equals(m.getTipo())
             ? "UPDATE produto SET quantidade = quantidade + ? WHERE id = ?"
@@ -53,6 +56,8 @@ public class MovimentacaoDAO {
                 psInsert.setDate(3, Date.valueOf(m.getData()));
                 psInsert.setString(4, m.getObservacao());
                 psInsert.setInt(5, m.getIdProduto());
+                if (m.getIdUsuario() > 0) psInsert.setInt(6, m.getIdUsuario());
+                else                      psInsert.setNull(6, Types.INTEGER);
                 psInsert.executeUpdate();
             }
 
@@ -147,7 +152,9 @@ public class MovimentacaoDAO {
             rs.getString("observacao"),
             rs.getInt("id_produto")
         );
+        m.setIdUsuario(rs.getInt("id_usuario"));
         m.setNomeProduto(rs.getString("nome_produto"));
+        m.setNomeResponsavel(rs.getString("nome_responsavel"));
         return m;
     }
 }
