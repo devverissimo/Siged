@@ -19,8 +19,9 @@ public class UsuarioDAO {
     public int inserir(Usuario u) {
         boolean comId = u.getId() > 0;
         String sql = comId
-            ? "INSERT INTO usuario (id, nome, login, senha) VALUES (?, ?, ?, ?)"
-            : "INSERT INTO usuario (nome, login, senha) VALUES (?, ?, ?)";
+            ? "INSERT INTO usuario (id, nome, login, senha, perfil) VALUES (?, ?, ?, ?, ?)"
+            : "INSERT INTO usuario (nome, login, senha, perfil) VALUES (?, ?, ?, ?)";
+        String perfil = u.getPerfil() != null && !u.getPerfil().isBlank() ? u.getPerfil() : "OPERADOR";
         try (Connection conn = ConnectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -29,10 +30,12 @@ public class UsuarioDAO {
                 ps.setString(2, u.getNome());
                 ps.setString(3, u.getLogin());
                 ps.setString(4, u.getSenha());
+                ps.setString(5, perfil);
             } else {
                 ps.setString(1, u.getNome());
                 ps.setString(2, u.getLogin());
                 ps.setString(3, u.getSenha());
+                ps.setString(4, perfil);
             }
             ps.executeUpdate();
 
@@ -46,14 +49,16 @@ public class UsuarioDAO {
     }
 
     public void atualizar(Usuario u) {
-        String sql = "UPDATE usuario SET nome = ?, login = ?, senha = ? WHERE id = ?";
+        String sql = "UPDATE usuario SET nome = ?, login = ?, senha = ?, perfil = ? WHERE id = ?";
+        String perfil = u.getPerfil() != null && !u.getPerfil().isBlank() ? u.getPerfil() : "OPERADOR";
         try (Connection conn = ConnectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, u.getNome());
             ps.setString(2, u.getLogin());
             ps.setString(3, u.getSenha());
-            ps.setInt(4, u.getId());
+            ps.setString(4, perfil);
+            ps.setInt(5, u.getId());
             ps.executeUpdate();
 
         } catch (SQLException e) {
@@ -75,7 +80,7 @@ public class UsuarioDAO {
     }
 
     public Usuario buscarPorId(int id) {
-        String sql = "SELECT id, nome, login, senha FROM usuario WHERE id = ?";
+        String sql = "SELECT id, nome, login, senha, perfil FROM usuario WHERE id = ?";
         try (Connection conn = ConnectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -90,7 +95,7 @@ public class UsuarioDAO {
     }
 
     public Usuario buscarPorLogin(String login) {
-        String sql = "SELECT id, nome, login, senha FROM usuario WHERE login = ?";
+        String sql = "SELECT id, nome, login, senha, perfil FROM usuario WHERE login = ?";
         try (Connection conn = ConnectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -105,7 +110,7 @@ public class UsuarioDAO {
     }
 
     public List<Usuario> listarTodos() {
-        String sql = "SELECT id, nome, login, senha FROM usuario ORDER BY nome";
+        String sql = "SELECT id, nome, login, senha, perfil FROM usuario ORDER BY nome";
         List<Usuario> lista = new ArrayList<>();
         try (Connection conn = ConnectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
@@ -120,7 +125,7 @@ public class UsuarioDAO {
     }
 
     public List<Usuario> buscarPorLoginOuNome(String termo) {
-        String sql = "SELECT id, nome, login, senha FROM usuario " +
+        String sql = "SELECT id, nome, login, senha, perfil FROM usuario " +
                      "WHERE login LIKE ? OR nome LIKE ? ORDER BY nome";
         List<Usuario> lista = new ArrayList<>();
         try (Connection conn = ConnectionFactory.getConnection();
@@ -171,11 +176,13 @@ public class UsuarioDAO {
     }
 
     private Usuario mapear(ResultSet rs) throws SQLException {
-        return new Usuario(
+        Usuario u = new Usuario(
             rs.getInt("id"),
             rs.getString("nome"),
             rs.getString("login"),
             rs.getString("senha")
         );
+        u.setPerfil(rs.getString("perfil"));
+        return u;
     }
 }

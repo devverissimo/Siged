@@ -24,10 +24,11 @@ CREATE TABLE IF NOT EXISTS categoria (
 -- Tabela: usuario
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS usuario (
-    id    INT          NOT NULL AUTO_INCREMENT,
-    nome  VARCHAR(100) NOT NULL,
-    login VARCHAR(50)  NOT NULL,
-    senha VARCHAR(255) NOT NULL,
+    id     INT          NOT NULL AUTO_INCREMENT,
+    nome   VARCHAR(100) NOT NULL,
+    login  VARCHAR(50)  NOT NULL,
+    senha  VARCHAR(255) NOT NULL,
+    perfil VARCHAR(20)  NOT NULL DEFAULT 'OPERADOR',
     PRIMARY KEY (id),
     UNIQUE KEY uq_usuario_login (login)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -97,8 +98,12 @@ INSERT INTO categoria (nome) VALUES
     ('Tablets');
 
 -- Usuario padrao (login: admin / senha: admin123)
-INSERT INTO usuario (nome, login, senha) VALUES
-    ('Administrador', 'admin', 'admin123');
+INSERT INTO usuario (nome, login, senha, perfil) VALUES
+    ('Administrador', 'admin', 'admin123', 'ADMIN');
+
+-- Atualizar perfil de usuarios existentes (banco ja populado sem a coluna)
+UPDATE usuario SET perfil = 'ADMIN' WHERE login = 'admin';
+UPDATE usuario SET perfil = 'OPERADOR' WHERE perfil IS NULL OR perfil = '';
 
 -- Produtos
 -- (quantidades ja refletem o saldo apos todas as movimentacoes abaixo)

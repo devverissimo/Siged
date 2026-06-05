@@ -14,6 +14,7 @@ public class Usuario {
     private String nome;
     private String login;
     private String senha;
+    private String perfil;
 
     public Usuario() {}
 
@@ -35,6 +36,9 @@ public class Usuario {
 
     public String getSenha()              { return senha; }
     public void   setSenha(String senha)  { this.senha = senha; }
+
+    public String getPerfil()               { return perfil; }
+    public void   setPerfil(String perfil)  { this.perfil = perfil; }
 
     @Override
     public String toString() {

@@ -17,6 +17,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -158,6 +159,7 @@ public class TelaLogAcesso extends JInternalFrame {
             reconstruirCombo();
             aplicarFiltro();
         } catch (RuntimeException ex) {
+            ex.printStackTrace();
             Mensagem.erro(this, "Erro ao carregar log de acesso:\n" + ex.getMessage());
         }
     }

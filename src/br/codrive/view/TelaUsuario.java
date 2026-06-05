@@ -24,6 +24,7 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
     // Aba CADASTRO
     private JTextField     campoId, campoNome, campoLogin;
     private JPasswordField campoSenha;
+    private JComboBox<String> comboPerfil;
     private JButton        btnNovo, btnSalvar, btnCancelar;
     private JPanel         painelConteudo;
 
@@ -122,9 +123,14 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
         campoLogin = new JTextField(20);
         addFormRow(card, g, 2, Mensagem.get("lbl.login") + ":", campoLogin);
 
+        comboPerfil = new JComboBox<>(new String[]{"ADMIN", "OPERADOR"});
+        comboPerfil.setFont(AppTheme.FONTE_DADOS);
+        comboPerfil.setSelectedItem("OPERADOR");
+        addFormRow(card, g, 3, "PERFIL:", comboPerfil);
+
         campoSenha = new JPasswordField(20);
         campoSenha.setFont(AppTheme.FONTE_DADOS);
-        addFormRow(card, g, 3, Mensagem.get("lbl.senha") + ":", campoSenha);
+        addFormRow(card, g, 4, Mensagem.get("lbl.senha") + ":", campoSenha);
 
         campoLogin.addActionListener(e -> campoSenha.requestFocus());
         campoSenha.addActionListener(e -> { if (btnSalvar.isEnabled()) acaoSalvar(); });
@@ -222,6 +228,7 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
         campoId.setBackground(AppTheme.COR_LINHA_PAR);
         campoNome.setText("");
         campoLogin.setText("");
+        comboPerfil.setSelectedItem("OPERADOR");
         campoSenha.setText("");
         usuarioAtual = null;
         setFormEnabled(false);
@@ -239,6 +246,8 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
         campoId.setBackground(AppTheme.COR_LINHA_PAR);
         campoNome.setText(u.getNome());
         campoLogin.setText(u.getLogin());
+        comboPerfil.setSelectedItem(u.getPerfil() != null && !u.getPerfil().isBlank()
+            ? u.getPerfil() : "OPERADOR");
         campoSenha.setText(u.getSenha());
         setFormEnabled(false);
         btnSalvar.setEnabled(false);
@@ -248,6 +257,7 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
     private void setFormEnabled(boolean enabled) {
         campoNome.setEnabled(enabled);
         campoLogin.setEnabled(enabled);
+        comboPerfil.setEnabled(enabled);
         campoSenha.setEnabled(enabled);
     }
 
@@ -263,6 +273,7 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
         campoId.setBackground(AppTheme.COR_PAINEL);
         campoNome.setText("");
         campoLogin.setText("");
+        comboPerfil.setSelectedItem("OPERADOR");
         campoSenha.setText("");
         usuarioAtual = null;
         setFormEnabled(true);
@@ -279,6 +290,7 @@ public class TelaUsuario extends JInternalFrame implements ModuloAcoes {
             Usuario u = usuarioAtual != null ? usuarioAtual : new Usuario();
             u.setNome(campoNome.getText());
             u.setLogin(campoLogin.getText());
+            u.setPerfil((String) comboPerfil.getSelectedItem());
             u.setSenha(senha);
 
             if (usuarioAtual == null) {
