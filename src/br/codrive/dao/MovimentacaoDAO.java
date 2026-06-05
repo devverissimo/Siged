@@ -118,6 +118,26 @@ public class MovimentacaoDAO {
         return lista;
     }
 
+    // Listagem filtrada por período — para a barra de filtros da TelaListagem
+    public List<Movimentacao> listarPorPeriodo(Date dataInicio, Date dataFim) {
+        String sql = SELECT_BASE +
+            "WHERE m.data BETWEEN ? AND ? " +
+            "ORDER BY m.data DESC, m.id DESC";
+        List<Movimentacao> lista = new ArrayList<>();
+        try (Connection conn = ConnectionFactory.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setDate(1, dataInicio);
+            ps.setDate(2, dataFim);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) lista.add(mapear(rs));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao listar movimentações por período: " + e.getMessage(), e);
+        }
+        return lista;
+    }
+
     private Movimentacao mapear(ResultSet rs) throws SQLException {
         Movimentacao m = new Movimentacao(
             rs.getInt("id"),

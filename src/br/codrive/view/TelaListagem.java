@@ -19,6 +19,8 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ItemEvent;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 public class TelaListagem extends JInternalFrame implements ModuloAcoes {
@@ -27,6 +29,8 @@ public class TelaListagem extends JInternalFrame implements ModuloAcoes {
     private JLabel             lblTotal;
     private JTable             tabela;
     private DefaultTableModel  modeloTabela;
+    private JTextField         campoDe;
+    private JTextField         campoAte;
 
     private final MovimentacaoService service = new MovimentacaoService();
 
@@ -54,8 +58,14 @@ public class TelaListagem extends JInternalFrame implements ModuloAcoes {
         raiz.setBackground(AppTheme.COR_FUNDO);
         raiz.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
-        raiz.add(construirPainelControle(), BorderLayout.NORTH);
-        raiz.add(construirPainelTabela(),   BorderLayout.CENTER);
+        JPanel norte = new JPanel();
+        norte.setLayout(new BoxLayout(norte, BoxLayout.Y_AXIS));
+        norte.setBackground(AppTheme.COR_FUNDO);
+        norte.add(construirPainelControle());
+        norte.add(construirPainelFiltro());
+
+        raiz.add(norte,                   BorderLayout.NORTH);
+        raiz.add(construirPainelTabela(), BorderLayout.CENTER);
 
         setContentPane(raiz);
     }
@@ -103,6 +113,46 @@ public class TelaListagem extends JInternalFrame implements ModuloAcoes {
 
         painel.add(esquerda, BorderLayout.WEST);
         painel.add(direita,  BorderLayout.EAST);
+        return painel;
+    }
+
+    private JPanel construirPainelFiltro() {
+        JPanel painel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
+        painel.setBackground(AppTheme.COR_FUNDO);
+        painel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(1, 0, 0, 0, AppTheme.COR_BORDA),
+            BorderFactory.createEmptyBorder(4, 0, 0, 0)
+        ));
+
+        JLabel lblDe = new JLabel("DE:");
+        lblDe.setFont(AppTheme.FONTE_BOLD);
+
+        campoDe = new JTextField(10);
+        campoDe.setFont(AppTheme.FONTE_DADOS);
+        campoDe.setToolTipText("DD/MM/AAAA");
+
+        JLabel lblAte = new JLabel("ATÉ:");
+        lblAte.setFont(AppTheme.FONTE_BOLD);
+
+        campoAte = new JTextField(10);
+        campoAte.setFont(AppTheme.FONTE_DADOS);
+        campoAte.setToolTipText("DD/MM/AAAA");
+
+        JButton btnFiltrar = new JButton("FILTRAR");
+        AppTheme.estilizarBotaoPrimario(btnFiltrar);
+        btnFiltrar.addActionListener(e -> filtrarPorPeriodo());
+
+        JButton btnLimpar = new JButton("LIMPAR FILTRO");
+        AppTheme.estilizarBotaoSecundario(btnLimpar);
+        btnLimpar.addActionListener(e -> limparFiltro());
+
+        painel.add(lblDe);
+        painel.add(campoDe);
+        painel.add(lblAte);
+        painel.add(campoAte);
+        painel.add(btnFiltrar);
+        painel.add(btnLimpar);
+
         return painel;
     }
 
@@ -165,6 +215,58 @@ public class TelaListagem extends JInternalFrame implements ModuloAcoes {
         } catch (RuntimeException ex) {
             Mensagem.erro(this, "Erro ao carregar listagem:\n" + ex.getMessage());
         }
+    }
+
+    private void filtrarPorPeriodo() {
+        LocalDate dataDe;
+        LocalDate dataAte;
+        try {
+            dataDe = Formatador.parseData(campoDe.getText());
+        } catch (DateTimeParseException e) {
+            Mensagem.erro(this, "Data DE inválida. Use o formato DD/MM/AAAA.");
+            campoDe.requestFocus();
+            return;
+        }
+        try {
+            dataAte = Formatador.parseData(campoAte.getText());
+        } catch (DateTimeParseException e) {
+            Mensagem.erro(this, "Data ATÉ inválida. Use o formato DD/MM/AAAA.");
+            campoAte.requestFocus();
+            return;
+        }
+        if (dataDe.isAfter(dataAte)) {
+            Mensagem.erro(this, "A data DE não pode ser posterior à data ATÉ.");
+            return;
+        }
+
+        modeloTabela.setRowCount(0);
+        try {
+            List<Movimentacao> lista = service.listarPorPeriodo(
+                java.sql.Date.valueOf(dataDe),
+                java.sql.Date.valueOf(dataAte)
+            );
+            for (Movimentacao m : lista) {
+                String tipo = "SAIDA".equals(m.getTipo())
+                    ? Mensagem.get("tipo.saida")
+                    : Mensagem.get("tipo.entrada");
+                modeloTabela.addRow(new Object[]{
+                    Formatador.formatarData(m.getData()),
+                    m.getNomeProduto() != null ? m.getNomeProduto() : "-",
+                    tipo,
+                    m.getQuantidade(),
+                    m.getObservacao() != null ? m.getObservacao() : ""
+                });
+            }
+            lblTotal.setText(lista.size() + " registro(s) encontrado(s)  ");
+        } catch (RuntimeException ex) {
+            Mensagem.erro(this, "Erro ao filtrar listagem:\n" + ex.getMessage());
+        }
+    }
+
+    private void limparFiltro() {
+        campoDe.setText("");
+        campoAte.setText("");
+        carregarListagem();
     }
 
     // -------------------------------------------------------------------------

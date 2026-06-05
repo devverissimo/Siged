@@ -13,6 +13,7 @@ import br.codrive.dao.ProdutoDAO;
 import br.codrive.model.Movimentacao;
 import br.codrive.model.Produto;
 
+import java.sql.Date;
 import java.util.List;
 
 public class MovimentacaoService {
@@ -44,6 +45,10 @@ public class MovimentacaoService {
 
     public List<Movimentacao> listarOrdenado(String criterio) {
         return movimentacaoDao.listarOrdenado(criterio);
+    }
+
+    public List<Movimentacao> listarPorPeriodo(Date dataInicio, Date dataFim) {
+        return movimentacaoDao.listarPorPeriodo(dataInicio, dataFim);
     }
 
     private void validarCampos(Movimentacao m) {
